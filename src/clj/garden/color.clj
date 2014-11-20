@@ -457,7 +457,7 @@
     (hsl->rgb (.-h this) (.-s this) (.-l this)))
 
   IRGBA
-  (-rgb [this]
+  (-rgba [this]
     (let [rgb (hsl->rgb (.-h this) (.-s this) (.-l this))]
       (RGBA. (.-r rgb) (.-g rgb) (.-b rgb) 1.0)))
 
