@@ -1,7 +1,10 @@
 (ns garden.color
-  (:refer-clojure :exclude [complement long])
+  (:refer-clojure :exclude [complement long + - * /])
   (:require
+   [clojure.core :as clj]
    [clojure.string :as string]))
+
+(set! *warn-on-reflection* true)
 
 ;; ---------------------------------------------------------------------
 ;; Color protocols
@@ -50,6 +53,7 @@
   "Return the alpha channel value of this."
   (-alpha [this]))
 
+
 ;; ---------------------------------------------------------------------
 ;; Color types
 
@@ -57,6 +61,7 @@
 (defrecord RGBA [r g b a])
 (defrecord HSL [h s l])
 (defrecord HSLA [h s l a])
+
 
 ;; ---------------------------------------------------------------------
 ;; Color functions
@@ -107,6 +112,7 @@
   [x]
   {:post [(number? %) (<= 0 % 1)]}
   (-alpha x))
+
 
 ;; ---------------------------------------------------------------------
 ;; Creation
@@ -165,7 +171,7 @@
   "Convert a color to long. x must satisfy IRGB."
   [x]
   (if (number? x)
-    (clojure.core/long x)
+    (clj/long x)
     (let [c (rgb x)
           r (.-r c)
           g (.-g c)
@@ -177,10 +183,16 @@
 ;; ---------------------------------------------------------------------
 ;; Conversion
 
+;;; From RGB
+
 (defn ^HSL rgb->hsl
   "Return an instance of HSL from red, green, and blue values."
   [r g b]
-  (let [mn (min r g b)
+  (let [+ clj/+
+        - clj/-
+        * clj/*       
+        / clj//
+        mn (min r g b)
         mx (max r g b)
         h (cond
            (= mn mx)
@@ -209,12 +221,20 @@
            :else
            (/ (- mx mn)
               (- 510 mx mn)))]
-    (HSL. (mod (float h) 360) (* 100.0 s) (* 100.0 l))))
+    (HSL. (mod (double h) 360)
+          (* 100.0 s)
+          (* 100.0 l))))
+
+;;; From HSL
 
 (defn ^RGB hsl->rgb
   "Return and instance of RGB from hue, saturation, and lightness values."
   [h s l]
-  (let [h (mod h 360)
+  (let [+ clj/+
+        - clj/-
+        * clj/*
+        / clj//
+        h (mod h 360)
         s (/ s 100.0)
         l (/ l 100.0)
         ;; C = (1 - |2L - 1|) * s
@@ -225,16 +245,83 @@
         m (- l (/ c 2.0))
         [r' g' b']
         (cond
-         (<= 0 h 59)    [c x 0]
-         (<= 60 h 119)  [x c 0]
-         (<= 120 h 179) [0 c x]
-         (<= 180 h 239) [0 x c]
-         (<= 240 h 299) [x 0 c]
-         (<= 300 h 359) [c 0 x])
-        r (Math/round (* 0xff (+ r' m)))
-        g (Math/round (* 0xff (+ g' m)))
-        b (Math/round (* 0xff (+ b' m)))]
+         (or (== 0 h) (< 0 h 60))      [c x 0]
+         (or (== 60 h) (< 60 h 120))   [x c 0]
+         (or (== 120 h) (< 120 h 180)) [0 c x]
+         (or (== 180 h) (< 180 h 240)) [0 x c]
+         (or (== 240 h) (< 240 h 300)) [x 0 c]
+         (or (== 300 h) (< 300 h 360)) [c 0 x])
+        r (Math/round ^Double (* 0xff (+ r' m)))
+        g (Math/round ^Double (* 0xff (+ g' m)))
+        b (Math/round ^Double (* 0xff (+ b' m)))]
     (RGB. r g b)))
+
+;; ---------------------------------------------------------------------
+;; Arithmetic
+
+(defn ^RGB +
+  "Compute the sum of the RGB channels of one or more colors."
+  ([]
+     ;; Black is the zero of RGB.
+     (RGB. 0 0 0))
+  ([a]
+     (rgb a))
+  ([a b]
+     (merge-with
+      (fn [a b]
+        (min 255 (clj/+ a b)))
+      (rgb a)
+      (rgb b)))
+  ([a b & more]
+     (reduce + (+ a b) more)))
+
+(defn ^RGB -
+  "Compute the difference of the RGB channels of one or more colors."
+  ([a]
+     ;; Since negative RGB values don't exist I'm not sure what the
+     ;; right thing to do is. Would inversion make sense?
+     (rgb a))
+  ([a b]
+     (let [c1 (rgb a) 
+           c2 (rgb b)]
+       (merge-with
+        (fn [a b]
+          (max 0 (clj/- a b)))
+        c1
+        c2)))
+  ([a b & more]
+     (reduce - (- a b) more)))
+
+(defn ^RGB *
+  "Compute the product of the RGB channels of one or more colors."
+  ([]
+     ;; White is the one of RGB.
+     (RGB. 255 255 255))
+  ([a]
+     (rgb a))
+  ([a b]
+     (merge-with
+      (fn [a b]
+        (clj// (clj/* a b)
+               255.0))
+      (rgb a)
+      (rgb b)))
+  ([a b & more]
+     (reduce * (* a b) more)))
+
+(defn ^RGB /
+  "Compute the quotient of the RGB channels of one or more colors."
+  ([a]
+     (merge-with clj//
+                 (rgb a)
+                 (RGB. 255.0 255.0 255.0)))
+  ([a b]
+     (merge-with clj// 
+                 (rgb a)
+                 (rgb b)))
+  ([a b & more]
+     (reduce / (/ a b) more)))
+
 
 ;; ---------------------------------------------------------------------
 ;; Utilities
@@ -242,35 +329,35 @@
 (defn ^HSLA rotate-hue
   "Rotates the hue value of a given color by degrees."
   [color degrees]
-  (update-in (hsla color) [:h] (fn [h] (mod (+ h degrees) 360))))
+  (update-in (hsla color) [:h] (fn [h] (mod (clj/+ h degrees) 360))))
 
 (defn ^HSLA saturate
   "Increase the saturation value of a given color by amount."
   [color amount]
-  (update-in (hsla color) [:s] (fn [s] (min (+ s amount) 100))))
+  (update-in (hsla color) [:s] (fn [s] (min (clj/+ s amount) 100))))
 
 (defn ^HSLA desaturate
   "Decrease the saturation value of a given color by amount."
   [color amount]
-  (update-in (hsla color) [:s] (fn [s] (max 0 (- s amount)))))
+  (update-in (hsla color) [:s] (fn [s] (max 0 (clj/- s amount)))))
 
 (defn ^HSLA lighten
   "Increase the lightness value a given color by amount."
   [color amount]
-  (update-in (hsla color) [:l] (fn [l] (min (+ l amount) 100))))
+  (update-in (hsla color) [:l] (fn [l] (min (clj/+ l amount) 100))))
 
 (defn ^HSLA darken
   "Decrease the saturation value of a given color by amount."
   [color amount]
-  (update-in (hsla color) [:l] (fn [l] (max 0 (- l amount)))))
+  (update-in (hsla color) [:l] (fn [l] (max 0 (clj/- l amount)))))
 
 (defn ^RGBA invert
   "Return the inversion of a color."
   [color]
   (let [c (rgba color)]
-    (RGBA. (- 255 (.-r c))
-           (- 255 (.-g c))
-           (- 255 (.-b c))
+    (RGBA. (clj/- 255 (.-r c))
+           (clj/- 255 (.-g c))
+           (clj/- 255 (.-b c))
            (.-a c))))
 
 (defn ^RGBA mix
@@ -280,7 +367,7 @@
            c2 (rgba color-2)]
        (merge-with
         (fn [l r]
-          (/ (+ l r) 2.0))
+          (clj// (clj/+ l r) 2.0))
         c1 c2)))
   ([color-1 color-2 & more]
      (reduce mix (mix color-1 color-2) more)))
@@ -303,7 +390,7 @@
      (split-complement color 130))
   ([color distance-from-complement]
      (let [d (max 1 (min 179 distance-from-complement))]
-       (hue-rotations color 0 d (- d)))))
+       (hue-rotations color 0 d (clj/- d)))))
 
 (defn analogous
   "Given a color return a triple of colors which are 0, 30, and 60
@@ -312,7 +399,7 @@
   ([color]
      (analogous color true))
   ([color clockwise?]
-     (let [sign (if clockwise? + -)]
+     (let [sign (if clockwise? clj/+ clj/-)]
        (hue-rotations color 0 (sign 30) (sign 60)))))
 
 (defn triad
@@ -329,7 +416,7 @@
   ([color]
      (tetrad color 90))
   ([color angle]
-     (let [degrees (max 1 (min 90 (Math/abs (float angle))))
+     (let [degrees (max 1 (min 90 (Math/abs (double angle))))
            color' (rotate-hue color degrees)]
        [(rotate-hue color 0)
         (complement color)
@@ -344,8 +431,8 @@
      (shades color 10))
   ([color step]
      (let [c (hsl color)]
-       (for [i (range 1 (Math/floor (/ 100.0 step)))]
-         (assoc c :l (* i step))))))
+       (for [i (range 1 (Math/floor (clj// 100.0 step)))]
+         (assoc c :l (clj/* i step))))))
 
 
 ;; ---------------------------------------------------------------------
@@ -552,8 +639,8 @@
   IAlpha
   (-alpha [l]
     (if (< 0 (bit-and l 0xff000000))
-      (/ (bit-and (bit-shift-right l 24) 0xff)
-         255.0)
+      (clj// (bit-and (bit-shift-right l 24) 0xff)
+             255.0)
       1.0))
 
   IRed
@@ -666,7 +753,7 @@
                     (mapv #(Integer/parseInt (str % %) 16)
                           h)
                     (mapv #(Integer/parseInt % 16)
-                          (re-seq #"[0-9a-f]{2}" h)))]
+                          (re-seq #"[\da-fA-F]{2}" h)))]
       (RGB. r g b))
     (throw (ex-info (str "Invalid hex string: " (pr-str s))
                     {:given s
@@ -687,7 +774,7 @@
   [^String s]
   (if-let [[_ r g b a] (re-matches rgba-re s)]
     (let [[r g b] (map #(Integer/parseInt ^String %) [r g b])
-          a (Float. ^String a)]
+          a (Double. ^String a)]
       (RGBA. r g b a))
     (throw (ex-info (str "Invalid rgb string: " (pr-str s))
                     {:given s
@@ -698,7 +785,7 @@
   [^String s]
   (if-let [[_ h s l] (re-matches hsl-re s)]
     (let [[h s] (map #(Integer/parseInt ^String %) [h s])
-          l (Float. ^String l)]
+          l (Double. ^String l)]
       (HSL. h s l))
     (throw (ex-info (str "Invalid hsl string: " (pr-str s))
                     {:given s
@@ -709,8 +796,8 @@
   [^String s]
   (if-let [[_ h s l a] (re-matches hsla-re s)]
     (let [[h s] (map #(Integer/parseInt ^String %) [h s])
-          l (Float. ^String l)
-          a (Float. ^String a)]
+          l (Double. ^String l)
+          a (Double. ^String a)]
       (HSLA. h s l a))
     (throw (ex-info (str "Invalid hsla string: " (pr-str s))
                     {:given s
@@ -1066,3 +1153,5 @@
   ILightness
   (-lightness [v]
     (sl-bounded (get v 2 0))))
+
+
