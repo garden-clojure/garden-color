@@ -52,6 +52,61 @@
   "Return the alpha channel value of this."
   (-alpha [this]))
 
+(defn irgb?
+  "true if `x` satisfies `IRgb`, false otherwise."
+  [x]
+  (satisifes? IRgb x))
+
+(defn irgba?
+  "true if `x` satisfies `IRgba`, false otherwise."
+  [x]
+  (satisifes? IRgba x))
+
+(defn ired?
+  "true if `x` satisfies `IRed`, false otherwise."
+  [x]
+  (satisifes? IRed x))
+
+(defn igreen?
+  "true if `x` satisfies `IGreen`, false otherwise."
+  [x]
+  (satisifes? IGreen x))
+
+(defn iblue?
+  "true if `x` satisfies `IBlue`, false otherwise."
+  [x]
+  (satisifes? IBlue x))
+
+(defn ihsl?
+  "true if `x` satisfies `IHsl`, false otherwise."
+  [x]
+  (satisifes? IHsl x))
+
+(defn ihsla?
+  "true if `x` satisfies `IHsla`, false otherwise."
+  [x]
+  (satisifes? IHsla x))
+
+(defn ihue?
+  "true if `x` satisfies `IHue`, false otherwise."
+  [x]
+  (satisifes? IHue x))
+
+(defn isaturation?
+  "true if `x` satisfies `ISaturation`, false otherwise."
+  [x]
+  (satisifes? ISaturation x))
+
+(defn ilightness?
+  "true if `x` satisfies `ILightness`, false otherwise."
+  [x]
+  (satisifes? ILightness x))
+
+(defn ialpha?
+  "true if `x` satisfies `IAlpha`, false otherwise."
+  [x]
+  (satisifes? IAlpha x))
+
 ;; ---------------------------------------------------------------------
 ;; Color types
 
@@ -59,6 +114,26 @@
 (defrecord Rgba [r g b a])
 (defrecord Hsl [h s l])
 (defrecord Hsla [h s l a])
+
+(defn rgb?
+  "true if `x` is an instance of `Rgb`, false otherwise."
+  [x]
+  (instance? Rgb x))
+
+(defn rgba?
+  "true if `x` is an instance of `Rgba`, false otherwise."
+  [x]
+  (instance? Rgba x))
+
+(defn hsl?
+  "true if `x` is an instance of `Hsl`, false otherwise."
+  [x]
+  (instance? Hsl x))
+
+(defn hsla?
+  "true if `x` is an instance of `Hsla`, false otherwise."
+  [x]
+  (instance? Hsla x))
 
 ;; ---------------------------------------------------------------------
 ;; Color functions
