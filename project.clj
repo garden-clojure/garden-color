@@ -5,7 +5,8 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
   :dependencies
-  [[org.clojure/clojure "1.6.0"]]
+  [[org.clojure/clojure "1.8.0"]
+   [org.clojure/clojurescript "1.9.293" :scope "provided"]]
 
   :source-paths
   ["src/clj" "src/cljs"]
@@ -13,20 +14,20 @@
   :profiles
   {:dev
    {:dependencies
-    [[org.clojure/test.check "0.6.1"]
-     [org.clojure/clojurescript "0.0-2371"]
-     [weasel "0.4.2"]
-     [com.cemerick/piggieback "0.1.3"]]
+    [[org.clojure/test.check "0.9.0"]
+     [weasel "0.7.0-SNAPSHOT"]
+     [com.cemerick/piggieback "0.2.1"]
+     [org.clojure/tools.nrepl "0.2.10"]]
 
     :source-paths
     ["src/clj" "src/cljs" "dev"]
 
     :plugins
-    [[com.cemerick/austin "0.1.3"]
-     [lein-cljsbuild "1.0.3"]]
+    [[lein-cljsbuild "1.0.3"]]
 
     :repl-options
-    {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}}
+    {:init-ns garden.color
+     :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}}
 
   :aliases
   {"auto-build"
