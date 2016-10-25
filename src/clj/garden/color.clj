@@ -57,57 +57,57 @@
 (defn irgb?
   "true if `x` satisfies `IRgb`, false otherwise."
   [x]
-  (satisifes? IRgb x))
+  (satisfies? IRgb x))
 
 (defn irgba?
   "true if `x` satisfies `IRgba`, false otherwise."
   [x]
-  (satisifes? IRgba x))
+  (satisfies? IRgba x))
 
 (defn ired?
   "true if `x` satisfies `IRed`, false otherwise."
   [x]
-  (satisifes? IRed x))
+  (satisfies? IRed x))
 
 (defn igreen?
   "true if `x` satisfies `IGreen`, false otherwise."
   [x]
-  (satisifes? IGreen x))
+  (satisfies? IGreen x))
 
 (defn iblue?
   "true if `x` satisfies `IBlue`, false otherwise."
   [x]
-  (satisifes? IBlue x))
+  (satisfies? IBlue x))
 
 (defn ihsl?
   "true if `x` satisfies `IHsl`, false otherwise."
   [x]
-  (satisifes? IHsl x))
+  (satisfies? IHsl x))
 
 (defn ihsla?
   "true if `x` satisfies `IHsla`, false otherwise."
   [x]
-  (satisifes? IHsla x))
+  (satisfies? IHsla x))
 
 (defn ihue?
   "true if `x` satisfies `IHue`, false otherwise."
   [x]
-  (satisifes? IHue x))
+  (satisfies? IHue x))
 
 (defn isaturation?
   "true if `x` satisfies `ISaturation`, false otherwise."
   [x]
-  (satisifes? ISaturation x))
+  (satisfies? ISaturation x))
 
 (defn ilightness?
   "true if `x` satisfies `ILightness`, false otherwise."
   [x]
-  (satisifes? ILightness x))
+  (satisfies? ILightness x))
 
 (defn ialpha?
   "true if `x` satisfies `IAlpha`, false otherwise."
   [x]
-  (satisifes? IAlpha x))
+  (satisfies? IAlpha x))
 
 ;; ---------------------------------------------------------------------
 ;; Color types
