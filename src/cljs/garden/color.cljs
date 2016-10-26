@@ -1101,9 +1101,10 @@
 
 ;;; Vector
 
-(defn bound
-  "Return function which takes a number and returns it if (<= a n b),
-  returns a if (< n 0), or b if (< b n)."
+(defn bound-fn
+  "Return a function which takes a number and returns it if (<= a n
+  b), returns a if (< n 0), or b if (< b n)."
+  {:private true}
   [a b]
   (fn [n]
     (if (<= a b)
@@ -1111,19 +1112,28 @@
       (min a (max n b)))))
 
 (def
-  ^{:arglists '([n])}
+  ^{:arglists '([n])
+    :private true}
   rgb-bounded
-  (bound 0 255))
+  (bound-fn 0 255))
 
 (def
-  ^{:arglists '([n])}
-  sl-bounded
-  (bound 0 100))
+  ^{:arglists '([n])
+    :private true}
+  saturation-bounded
+  (bound-fn 0 100))
 
 (def
-  ^{:arglists '([n])}
+  ^{:arglists '([n])
+    :private true}
+  lightness-bounded
+  (bound-fn 0 100))
+
+(def
+  ^{:arglists '([n])
+    :private true}
   alpha-bounded
-  (bound 0 1))
+  (bound-fn 0 1))
 
 
 (extend-type PersistentVector
@@ -1167,8 +1177,8 @@
 
   ISaturation
   (-saturation [v]
-    (sl-bounded (get v 1 0)))
+    (saturation-bounded (get v 1 0)))
 
   ILightness
   (-lightness [v]
-    (sl-bounded (get v 2 0))))
+    (lightness-bounded (get v 2 0))))
