@@ -2,14 +2,37 @@
   (:require [clojure.test :as t :include-macros true]
             [clojure.test.check :as tc]
             [clojure.test.check.generators :as gen]
-            [clojure.test.check.properties :as prop]
-            [clojure.test.check.clojure-test :refer [defspec]]
+            [clojure.test.check.properties :as prop :include-macros true]
+            [clojure.test.check.clojure-test :include-macros true :refer [defspec]]
+            [clojure.string :as string]
             [garden.color :as c])
   #?(:clj
      (:import garden.color.Hsl
               garden.color.Hsla
               garden.color.Rgb
               garden.color.Rgba)))
+
+;; ---------------------------------------------------------------------
+;; Helpers
+
+(defn rgb-str [[r g b]]
+  {:pre [(nat-int? r) (nat-int? g) (nat-int? b)]}
+  (str "rgb(" (string/join "," [r g b]) ")"))
+
+(defn rgba-str [[r g b a]]
+  {:pre [(nat-int? r) (nat-int? g) (nat-int? b) (pos? a)]}
+  (str "rgba(" (string/join "," [r g b a]) ")"))
+
+(defn hsl-str [[h s l]]
+  {:pre [(nat-int? h) (nat-int? s) (nat-int? l)]}
+  (str "hsl(" (string/join "," [h (str s "%") (str l "%")]) ")"))
+
+(defn hsla-str [[h s l a]]
+  {:pre [(nat-int? h) (nat-int? s) (nat-int? l) (pos? a)]}
+  (str "hsla(" (string/join "," [h (str s "%") (str l "%") a]) ")"))
+
+;; ---------------------------------------------------------------------
+;; Generators
 
 (def gen-rgb-channel
   (gen/choose 0 255))
@@ -24,10 +47,27 @@
   (gen/choose 0 100))
 
 (def gen-alpha-channel
-  (gen/double* {:infinite? false
-                :NaN? false
-                :min 0
-                :max 1}))
+  (gen/such-that
+   pos?
+   (gen/double* {:infinite? false
+                 :NaN? false
+                 :min 0
+                 :max 1})))
+
+(def gen-hex-char
+  (gen/fmap char
+            (gen/one-of [(gen/choose 0x30 0x39)
+                         (gen/choose 0x41 0x46)
+                         (gen/choose 0x61 0x66)])))
+
+(def gen-css-hex
+  (gen/fmap (fn [chars]
+              (str "#" (apply str chars)))
+            (gen/one-of [(gen/vector gen-hex-char 3)
+                         (gen/vector gen-hex-char 6)])))
+
+;; ---------------------------------------------------------------------
+;; Color function tests
 
 (defspec red-spec
   (prop/for-all [ch gen-rgb-channel]
@@ -101,6 +141,9 @@
            (= b-ch (c/blue rgba))
            (= a-ch (c/alpha rgba))))))
 
+;; ---------------------------------------------------------------------
+;; Conversion tests
+
 (defspec round-trip 10000
   (prop/for-all [i gen/pos-int]
     (= (c/long i)
@@ -119,3 +162,69 @@
   (prop/for-all [i gen/pos-int]
     (= (-> i c/invert c/invert c/long)
        i)))
+
+;; ---------------------------------------------------------------------
+;; String parsing tests
+
+(defspec rgb-str->rgb-spec
+  (prop/for-all [r gen-rgb-channel
+                 g gen-rgb-channel
+                 b gen-rgb-channel]
+    (let [rgb (c/rgb-str->rgb
+               (rgb-str [r g b]))]
+      (and (c/rgb? rgb)
+           (= r (c/red rgb))
+           (= g (c/green rgb))
+           (= b (c/blue rgb))))))
+
+(defspec rgba-str->rgba-spec
+  (prop/for-all [r gen-rgb-channel
+                 g gen-rgb-channel
+                 b gen-rgb-channel
+                 a gen-alpha-channel]
+    (let [rgba (c/rgba-str->rgba
+                (rgba-str [r g b a]))]
+      (and (c/rgba? rgba)
+           (= r (c/red rgba))
+           (= g (c/green rgba))
+           (= b (c/blue rgba))
+           (= a (c/alpha rgba))))))
+
+(defspec hsl-str->hsl-spec
+  (prop/for-all [h gen-hue
+                 s gen-saturation
+                 l gen-lightness]
+    (let [hsl (c/hsl-str->hsl
+               (hsl-str [h s l]))]
+      (and (c/hsl? hsl)
+           #?@(:clj
+               [(== h (c/hue hsl))
+                (== s (c/saturation hsl))
+                (== l (c/lightness hsl))]
+               :cljs ;; == emits several warnings in ClojureScript
+               [(= h (c/hue hsl))
+                (= s (c/saturation hsl))
+                (= l (c/lightness hsl))])))))
+
+(defspec hsla-str->hsla-spec
+  (prop/for-all [h gen-hue
+                 s gen-saturation
+                 l gen-lightness
+                 a gen-alpha-channel]
+    (let [hsla (c/hsla-str->hsla
+                (hsla-str [h s l a]))]
+      (and (c/hsla? hsla)
+           #?@(:clj
+               [(== h (c/hue hsla))
+                (== s (c/saturation hsla))
+                (== l (c/lightness hsla))
+                (== a (c/alpha hsla))]
+               :cljs ;; == emits several warnings in ClojureScript
+               [(= h (c/hue hsla))
+                (= s (c/saturation hsla))
+                (= l (c/lightness hsla))
+                (= a (c/alpha hsla))])))))
+
+(defspec hex-str->rgb-spec
+  (prop/for-all [s gen-css-hex]
+    (c/rgb? (c/hex-str->rgb s))))

@@ -23,7 +23,8 @@
     ["src/clj" "src/cljs" "dev"]
 
     :plugins
-    [[lein-cljsbuild "1.0.3"]]
+    [[lein-cljsbuild "1.1.4"]
+     [lein-doo "0.1.7"]]
 
     :repl-options
     {:init-ns garden.color
@@ -31,12 +32,36 @@
 
   :aliases
   {"auto-build"
-   ["do" ["cljsbuild" "clean"] ["cljsbuild" "auto" "dev"]]}
+   ["do"
+    ["clean"]
+    ["cljsbuild" "auto" "dev"]]
+
+   "test-all"
+   ["do"
+    ["test"]
+    ["test-cljs"]]
+
+   "test-cljs"
+   ["do"
+    ["clean"]
+    ["doo" "node" "nodejs-test" "once"]
+    ["doo" "phantom" "phantomjs-test" "once"]]}
 
   :cljsbuild
   {:builds [{:id "dev"
              :source-paths ["src/clj" "src/cljs" "dev"]
-             :compiler {:output-to "resources/public/js/garden-color.dev.js"
-                        :output-dir "resources/public/js/out"
-                        :source-map "resources/public/js/garden-color.dev.js.map"
+             :compiler {:output-to "target/js/garden-color.dev.js"
+                        :output-dir "target/js/out"
+                        :source-map "target/js/garden-color.dev.js.map"
+                        :optimizations :none}}
+            {:id "nodejs-test"
+             :source-paths ["src/cljs" "test"]
+             :compiler {:output-to "target/js/garden-color-node-test.js"
+                        :target :nodejs
+                        :main garden.test-runner
+                        :optimizations :none}}
+            {:id "phantomjs-test"
+             :source-paths ["src/cljs" "test"]
+             :compiler {:output-to "target/js/garden-color-phantomjs-test.js"
+                        :main garden.test-runner
                         :optimizations :none}}]}) 

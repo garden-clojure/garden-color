@@ -741,9 +741,15 @@
   #"#?((?:[\da-fA-F]{3}){1,2})")
 
 (let [;; Rgb channel range (0 - 255)
-      c "\\s*([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\\s*"
+      c "\\s*([01]?\\d?\\d|2[0-4]\\d|25[0-5])\\s*"
+      ;; Hue
+      h "\\s*(\\d+)\\s*"
+      ;; Saturation
+      s "\\s*(\\d|[1-9]\\d|100)%\\s*"
+      ;; Lightness
+      l "\\s*(\\d|[1-9]\\d|100)%\\s*"
       ;; Alpha channel range (0 - 1)
-      a "\\s*(0?(?:\\.[0-9]+)?|1(?:\\.0)?)\\s*"]
+      a "\\s*(0?(?:\\.\\d+)?|1(?:\\.0)?|\\d+\\.\\d+(?:[eE][-+]?\\d+)?)\\s*"]
   (def ^:private rgb-re
     "Regular expression mathing a CSS rgb color value. Captures each
   argument."
@@ -757,12 +763,12 @@
   (def ^:private hsl-re
     "Regular expression matching a CSS hsl color value. Caputres each
   argument."
-    #"hsl\(\s*(\d+)\s*,\s*([0-9]|[1-9][0-9]|100)\s*,\s*([0-9](?:\.[0-9])?|[1-9][0-9](?:\.[0-9]+)?|100)%?\s*\)")
+    (re-pattern (str "hsl\\(" h "," s "," l "\\)")))
 
   (def ^:private hsla-re
     "Regular expression matching a CSS hsla color value. Captures each
   argument."
-    #"hsla\(\s*(\d+)\s*,\s*([0-9]|[1-9][0-9]|100)\s*,\s*([0-9](?:\.[0-9])?|[1-9][0-9](?:\.[0-9]+)?|100)%?\s*,\s*(0?(?:\.[0-9]+)?|1(?:\.0)?)\s*\)"))
+    (re-pattern (str "hsla\\(" h "," s "," l "," a "\\)"))))
 
 (defn ^Rgb hex-str->rgb
   "Convert a CSS hex value to instance of Rgb."
