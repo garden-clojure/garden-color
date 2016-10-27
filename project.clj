@@ -1,4 +1,4 @@
-(defproject garden/garden-color "0.1.0-SNAPSHOT"
+(defproject garden/garden-color "1.0.0-SNAPSHOT"
   :description "Utilities for working with color."
   :url "http://github.com/garden-clojure/garden-color"
   :license {:name "Eclipse Public License"
