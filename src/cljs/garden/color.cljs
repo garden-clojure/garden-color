@@ -433,11 +433,11 @@
     (Hsl. (mod (float h) 360) (* 100.0 s) (* 100.0 l))))
 
 (defn ^Rgb hsl->rgb
-  "Return and instance of Rgb from hue, saturation, and lightness values."
+  "Return an instance of Rgb from hue, saturation, and lightness values."
   [h s l]
   (let [+ clj/+
         - clj/-
-        * clj/*       
+        * clj/*
         / clj//
         h (mod h 360)
         s (/ s 100.0)
@@ -460,6 +460,45 @@
         g (Math/round (* 0xff (+ g' m)))
         b (Math/round (* 0xff (+ b' m)))]
     (Rgb. r g b)))
+
+(def lab-constants
+  {:kn 18
+   :xn 0.950470
+   :yn 1
+   :zn 1.088830
+   :t0 0.137931034
+   :t1 0.206896552
+   :t2 0.12841855
+   :t3 0.008856452})
+
+(defn- rgb->xyz
+  "Intermediate conversion from rgb to CIEXYZ"
+  [r g b]
+  (letfn [(rgb-xyz [r] (let [r (/ r 255)]
+                         (if (<= r 0.04045)
+                           (/ r 12.92)
+                           (js/Math.pow (/ (+ r 0.055) 1.055) 2.4))))
+          (xyz-lab [t] (let [{:keys [t0 t2 t3]} lab-constants]
+                         (if (< t t3)
+                           (js/Math.pow t (/ 1 3))
+                           (+ t0 (/ t t2)))))]
+    (let [[r g b] (mapv rgb-xyz [r g b])
+          {:keys [xn yn zn]} lab-constants]
+      (mapv
+        (fn [[rc gc bc n]]
+          (/ (+ (* rc r) (* gc g) (* bc b)) n))
+        [[0.4124564 0.3575761 0.1804375 xn]
+         [0.2126729 0.7151522 0.0721750 yn]
+         [0.0193339 0.1191920 0.9503041 zn]]))))
+
+(defn ^Lab rgb->lab
+  "Return an instance of Lab from red, green, and blue values."
+  [r g b]
+  (let [[x y z] (rgb->xyz r g b)]
+    (Lab.
+      (- (* 116 y) 16)
+      (* 500 (- x y))
+      (* 200 (- y z)))))
 
 
 ;; ---------------------------------------------------------------------
