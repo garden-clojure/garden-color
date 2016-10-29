@@ -48,6 +48,34 @@
   "Return the lightness value of this."
   (-lightness [this]))
 
+(defprotocol ILab
+  "Return an instance of (CIELAB) Lab from this."
+  (-lab [this]))
+
+(defprotocol ILaba
+  "return an instance of (CIELAB) Laba from this."
+  (-laba [this]))
+
+(defprotocol IOpponentA
+  "Return the CIELAB color-opponent dimension 'a' from this"
+  (-a [this]))
+
+(defprotocol IOpponentB
+  "Return the CIELAB color-opponent dimension 'b' from this"
+  (-b [this]))
+
+(defprotocol IHcl
+  "Return an instance of Hcl from this."
+  (-hcl [this]))
+
+(defprotocol IHcla
+  "Return an instance of Hcla from this."
+  (-hcla [this]))
+
+(defprotocol IChroma
+  "return the chroma value from this."
+  (-chroma [this]))
+
 (defprotocol IAlpha
   "Return the alpha channel value of this."
   (-alpha [this]))
