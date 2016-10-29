@@ -177,6 +177,10 @@
 (defrecord Rgba [r g b a])
 (defrecord Hsl [h s l])
 (defrecord Hsla [h s l a])
+(defrecord Lab [l opp-a opp-b])
+(defrecord Laba [l opp-a opp-b a])
+(defrecord Hcl [h c l])
+(defrecord Hcla [h c l a])
 
 (defn rgb?
   "true if `x` is an instance of `Rgb`, false otherwise."
@@ -197,6 +201,26 @@
   "true if `x` is an instance of `Hsla`, false otherwise."
   [x]
   (instance? Hsla x))
+
+(defn lab?
+  "true if `x` is an instance of `Lab`, false otherwise."
+  [x]
+  (instance? Lab x))
+
+(defn laba?
+  "true if `x` is an instance of `Laba`, false otherwise."
+  [x]
+  (instance? Laba x))
+
+(defn hcl?
+  "true if `x` is an instance of `Hcl`, false otherwise."
+  [x]
+  (instance? Hcl x))
+
+(defn hcla?
+  "true if `x` is an instance of `Hcla`, false otherwise."
+  [x]
+  (instance? Hcla x))
 
 ;; ---------------------------------------------------------------------
 ;; Color functions
@@ -226,7 +250,7 @@
   (-blue x))
 
 
-;;; Hsl functions
+;;; Hsl, Lab, and Hcl functions
 
 (defn ^Number hue
   [x]
@@ -242,6 +266,23 @@
   [x]
   {:post [(number? %) (<= 0 % 100)]}
   (-lightness x))
+
+(defn ^Number a
+  [x]
+  {:post [(number? %)]}
+  ;; TODO: include the proper domain. Read all the papers.
+  (-a x))
+
+(defn ^Number b
+  [x]
+  {:post [(number? %)]}
+  ;; TODO: include the proper domain. Read all the papers.
+  (-b x))
+
+(defn ^Number chroma
+  [x]
+  {:post [(number? %)]}
+  (-chroma x))
 
 (defn ^Number alpha
   [x]
