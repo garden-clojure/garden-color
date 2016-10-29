@@ -474,27 +474,36 @@
 (defn- rgb->xyz
   "Intermediate conversion from rgb to CIEXYZ"
   [r g b]
-  (letfn [(rgb-xyz [r] (let [r (/ r 255)]
-                         (if (<= r 0.04045)
-                           (/ r 12.92)
-                           (js/Math.pow (/ (+ r 0.055) 1.055) 2.4))))
-          (xyz-lab [t] (let [{:keys [t0 t2 t3]} lab-constants]
-                         (if (< t t3)
-                           (js/Math.pow t (/ 1 3))
-                           (+ t0 (/ t t2)))))]
-    (let [[r g b] (mapv rgb-xyz [r g b])
-          {:keys [xn yn zn]} lab-constants]
-      (mapv
-        (fn [[rc gc bc n]]
-          (/ (+ (* rc r) (* gc g) (* bc b)) n))
-        [[0.4124564 0.3575761 0.1804375 xn]
-         [0.2126729 0.7151522 0.0721750 yn]
-         [0.0193339 0.1191920 0.9503041 zn]]))))
+  (let [/ clj//
+        + clj/+
+        * clj/*
+        - clj/-
+        rgb-xyz (fn [r] (let [r (/ r 255)]
+                          (if (<= r 0.04045)
+                            (/ r 12.92)
+                            (js/Math.pow (/ (+ r 0.055) 1.055) 2.4))))
+        xyz-lab (fn [t] (let [{:keys [t0 t2 t3]} lab-constants]
+                          (if (> t t3)
+                            (js/Math.pow t (/ 1 3))
+                            (+ t0 (/ t t2)))))
+        rgb (mapv rgb-xyz [r g b])
+        {:keys [xn yn zn]} lab-constants]
+    (mapv
+      (fn [consts n]
+        (xyz-lab (/ (apply + (map * consts rgb)) n)))
+      [[0.4124564 0.3575761 0.1804375]
+       [0.2126729 0.7151522 0.0721750]
+       [0.0193339 0.1191920 0.9503041]]
+      [xn yn zn])))
 
 (defn ^Lab rgb->lab
   "Return an instance of Lab from red, green, and blue values."
   [r g b]
-  (let [[x y z] (rgb->xyz r g b)]
+  (let [- clj/-
+        * clj/*
+        + clj/*
+        / clj//
+        [x y z] (rgb->xyz r g b)]
     (Lab.
       (- (* 116 y) 16)
       (* 500 (- x y))
