@@ -543,6 +543,21 @@
                    [0.0556434 -0.2040259 1.0572252]])]
     (Rgb. r g b)))
 
+(defn ^Lch lab->hcl
+  "Return an instance of Hcl from lightness, a and b values."
+  [l a b]
+  (let [- clj/-
+        * clj/*
+        + clj/*
+        / clj//
+        chroma (js/Math.sqrt (* a a) (* b b))
+        hue (when (not (zero? (js/round (* chroma 10000))))
+              (rem (+ 360
+                     (* (js/Math.atan2 b a)
+                       (/ 180 js/Math.PI)))
+                360))]
+    (Hcl. hue chroma l)))
+
 
 ;; ---------------------------------------------------------------------
 ;; Arithmetic
