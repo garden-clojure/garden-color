@@ -56,11 +56,11 @@
   "return an instance of (CIELAB) Laba from this."
   (-laba [this]))
 
-(defprotocol IOpponentA
+(defprotocol IA
   "Return the CIELAB color-opponent dimension 'a' from this"
   (-a [this]))
 
-(defprotocol IOpponentB
+(defprotocol IB
   "Return the CIELAB color-opponent dimension 'b' from this"
   (-b [this]))
 
@@ -129,6 +129,41 @@
   "true if `x` satisfies `ILightness`, false otherwise."
   [x]
   (satisfies? ILightness x))
+
+(defn ilab?
+  "true if `x` satisfies `ILab`, false otherwise."
+  [x]
+  (satisfies? ILab x))
+
+(defn ilaba?
+  "true if `x` satisfies `ILaba`, false otherwise."
+  [x]
+  (satisfies? ILaba x))
+
+(defn ia?
+  "true if `x` satisfies `IA`, false otherwise."
+  [x]
+  (satisfies? IA x))
+
+(defn ib?
+  "true if `x` satisfies `IB`, false otherwise."
+  [x]
+  (satisfies? IB x))
+
+(defn ihcl?
+  "true if `x` satisfies `IHcl`, false otherwise."
+  [x]
+  (satisfies? IHcl x))
+
+(defn ihcla?
+  "true if `x` satisfies `IHcla`, false otherwise."
+  [x]
+  (satisfies? IHcla x))
+
+(defn ichroma?
+  "true if `x` satisfies `IChroma`, false otherwise."
+  [x]
+  (satisfies? IChroma x))
 
 (defn ialpha?
   "true if `x` satisfies `IAlpha`, false otherwise."
