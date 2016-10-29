@@ -478,14 +478,16 @@
         + clj/+
         * clj/*
         - clj/-
-        rgb-xyz (fn [r] (let [r (/ r 255)]
-                          (if (<= r 0.04045)
-                            (/ r 12.92)
-                            (js/Math.pow (/ (+ r 0.055) 1.055) 2.4))))
-        xyz-lab (fn [t] (let [{:keys [t0 t2 t3]} lab-constants]
-                          (if (> t t3)
-                            (js/Math.pow t (/ 1 3))
-                            (+ t0 (/ t t2)))))
+        rgb-xyz (fn [r]
+                  (let [r (/ r 255)]
+                    (if (<= r 0.04045)
+                      (/ r 12.92)
+                      (js/Math.pow (/ (+ r 0.055) 1.055) 2.4))))
+        xyz-lab (fn [t]
+                  (let [{:keys [t0 t2 t3]} lab-constants]
+                    (if (> t t3)
+                      (js/Math.pow t (/ 1 3))
+                      (+ t0 (/ t t2)))))
         rgb (mapv rgb-xyz [r g b])
         {:keys [xn yn zn]} lab-constants]
     (mapv
@@ -508,6 +510,38 @@
       (- (* 116 y) 16)
       (* 500 (- x y))
       (* 200 (- y z)))))
+
+(defn ^Rgb lab->rgb
+  "Return an instance of Rgb from lightness, a, and b values."
+  [l a b]
+  (let [- clj/-
+        * clj/*
+        + clj/*
+        / clj//
+        {:keys [t0 t1 t2 xn yn zn]} lab-constants
+        limit (comp (partial min 255)
+                (partial max 0))
+        lab-xyz (fn [t]
+                  (if (> t t1)
+                    (* t t t)
+                    (* t2 (- t t0))))
+        xyz-rgb (fn [r]
+                  (js/Math.round
+                    (* 255 (if (<= r 0.00304)
+                             (* 12.92 r)
+                             (- (* 1.055 (js/Math.pow r
+                                           (/ 1 2.4)))
+                               0.055)))))
+        y (* yn (lab-xyz (/ (+ 16 l) 116)))
+        x (* xn (lab-xyz (if (js/isNaN a) y (+ y (/ a 500)))))
+        z (* zn (lab-xyz (if (js/isNaN b) y (- y (/ b 200)))))
+        [r g b] (mapv
+                  (fn [consts]
+                    (limit (apply + (map * consts [x y z]))))
+                  [[3.2404542 -1.5371385 -0.4985314]
+                   [-0.9692660 1.8760108 0.0415560]
+                   [0.0556434 -0.2040259 1.0572252]])]
+    (Rgb. r g b)))
 
 
 ;; ---------------------------------------------------------------------
