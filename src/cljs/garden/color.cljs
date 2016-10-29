@@ -328,6 +328,42 @@
     (-hsla x)
     (Hsla. (hue x) (saturation x) (lightness x) (alpha x))))
 
+(defn ^Lab lab
+  "Return an instance of Lab. x must satisfy either ILab or all of
+  ILightness, IA, and IB."
+  [x]
+  {:post [(instance? Lab %)]}
+  (if (satisfies? ILab x)
+    (-lab x)
+    (Lab. (lightness x) (a x) (b x))))
+
+(defn ^Laba laba
+  "Return an instance of Laba. x must satisfy either ILaba or all of
+  ILightness, IA, IB, and IAlpha"
+  [x]
+  {:post [(instance? Laba %)]}
+  (if (satisfies? ILaba x)
+    (-laba x)
+    (Laba. (lightness x) (a x) (b x) (alpha x))))
+
+(defn ^Hcl hcl
+  "Return an instance of Hcl. x must satisfy either IHcl or all of
+  IHue, IChroma, and ILightness."
+  [x]
+  {:post [(instance? Hcl %)]}
+  (if (satisfies? IHcl x)
+    (-hcl x)
+    (Hcl. (hue x) (chroma x) (lightness x))))
+
+(defn ^Hcla hcla
+  "Return an instance of Hcla. x must satisfy either IHcla or all of
+  IHue, IChroma, ILightness, and IAlpha."
+  [x]
+  {:post [(instance? Hcla %)]}
+  (if (satisfies? IHcla x)
+    (-hcla x)
+    (Hcla. (hue x) (chroma x) (lightness x) (alpha x))))
+
 (defn ^String hex
   "Convert a color to string in hex format."
   [x]
