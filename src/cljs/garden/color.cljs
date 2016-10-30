@@ -58,11 +58,11 @@
 
 (defprotocol IA
   "Return the CIELAB color-opponent dimension 'a' from this"
-  (-a [this]))
+  (-astar [this]))
 
 (defprotocol IB
   "Return the CIELAB color-opponent dimension 'b' from this"
-  (-b [this]))
+  (-bstar [this]))
 
 (defprotocol IHcl
   "Return an instance of Hcl from this."
@@ -177,8 +177,8 @@
 (defrecord Rgba [r g b a])
 (defrecord Hsl [h s l])
 (defrecord Hsla [h s l a])
-(defrecord Lab [l opp-a opp-b])
-(defrecord Laba [l opp-a opp-b a])
+(defrecord Lab [l astar bstar])
+(defrecord Laba [l astar bstar a])
 (defrecord Hcl [h c l])
 (defrecord Hcla [h c l a])
 
@@ -267,17 +267,17 @@
   {:post [(number? %) (<= 0 % 100)]}
   (-lightness x))
 
-(defn ^Number a
+(defn ^Number astar
   [x]
   {:post [(number? %)]}
   ;; TODO: include the proper domain. Read all the papers.
-  (-a x))
+  (-astar x))
 
-(defn ^Number b
+(defn ^Number bstar
   [x]
   {:post [(number? %)]}
   ;; TODO: include the proper domain. Read all the papers.
-  (-b x))
+  (-bstar x))
 
 (defn ^Number chroma
   [x]
@@ -335,7 +335,7 @@
   {:post [(instance? Lab %)]}
   (if (satisfies? ILab x)
     (-lab x)
-    (Lab. (lightness x) (a x) (b x))))
+    (Lab. (lightness x) (astar x) (bstar x))))
 
 (defn ^Laba laba
   "Return an instance of Laba. x must satisfy either ILaba or all of
@@ -344,7 +344,7 @@
   {:post [(instance? Laba %)]}
   (if (satisfies? ILaba x)
     (-laba x)
-    (Laba. (lightness x) (a x) (b x) (alpha x))))
+    (Laba. (lightness x) (astar x) (bstar x) (alpha x))))
 
 (defn ^Hcl hcl
   "Return an instance of Hcl. x must satisfy either IHcl or all of
@@ -855,11 +855,11 @@
      (.-l ^Hsl (-hsl this)))
 
    IA
-   (-a [this]
+   (-astar [this]
      (.-astar ^Lab (-lab this)))
 
    IB
-   (-b [this]
+   (-bstar [this]
      (.-bstar ^Lab (-lab this)))
 
    IChroma
@@ -930,11 +930,11 @@
     (.-l ^Hsl (-hsl this)))
 
   IA
-  (-a [this]
+  (-astar [this]
     (.-astar ^Lab (-lab this)))
 
   IB
-  (-b [this]
+  (-bstar [this]
     (.-bstar ^Lab (-lab this)))
 
   IChroma
@@ -1004,11 +1004,11 @@
     (.-l this))
 
   IA
-  (-a [this]
+  (-astar [this]
     (.-astar ^Lab (-lab this)))
 
   IB
-  (-b [this]
+  (-bstar [this]
     (.-bstar ^Lab (-lab this)))
 
   IChroma
@@ -1079,11 +1079,11 @@
     (.-l this))
 
   IA
-  (-a [this]
+  (-astar [this]
     (.-astar ^Lab (-lab this)))
 
   IB
-  (-b [this]
+  (-bstar [this]
     (.-bstar ^Lab (-lab this)))
 
   IChroma
@@ -1153,11 +1153,11 @@
     (.-l this))
 
   IA
-  (-a [this]
+  (-astar [this]
     (.-astar this))
 
   IB
-  (-b [this]
+  (-bstar [this]
     (.-bstar this))
 
   IChroma
@@ -1228,11 +1228,11 @@
     (.-l this))
 
   IA
-  (-a [this]
+  (-astar [this]
     (.-astar this))
 
   IB
-  (-b [this]
+  (-bstar [this]
     (.-bstar this))
 
   IChroma
@@ -1302,11 +1302,11 @@
     (.-l this))
 
   IA
-  (-a [this]
+  (-astar [this]
     (.-astar ^Lab (-lab this)))
 
   IB
-  (-b [this]
+  (-bstar [this]
     (.-bstar ^Lab (-lab this)))
 
   IChroma
@@ -1377,11 +1377,11 @@
     (.-l this))
 
   IA
-  (-a [this]
+  (-astar [this]
     (.-astar ^Lab (-lab this)))
 
   IB
-  (-b [this]
+  (-bstar [this]
     (.-bstar ^Lab (-lab this)))
 
   IChroma
