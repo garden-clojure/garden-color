@@ -310,7 +310,7 @@
     (-rgba x)
     (Rgba. (red x) (green x) (blue x) (lightness x))))
 
-(defn ^Hsl hsl 
+(defn ^Hsl hsl
   "Return an instance of Hsl. x must satisfy either IHsl or all of
   IHue, ISaturation, and ILightness."
   [x]
@@ -533,8 +533,8 @@
                                            (/ 1 2.4)))
                                0.055)))))
         y (* yn (lab-xyz (/ (+ 16 l) 116)))
-        x (* xn (lab-xyz (if (js/isNaN a) y (+ y (/ a 500)))))
-        z (* zn (lab-xyz (if (js/isNaN b) y (- y (/ b 200)))))
+        x (* xn (lab-xyz (if (nil? a) y (+ y (/ a 500)))))
+        z (* zn (lab-xyz (if (nil? b) y (- y (/ b 200)))))
         [r g b] (mapv
                   (fn [consts]
                     (limit (apply + (map * consts [x y z]))))
@@ -575,7 +575,6 @@
   [r g b]
   (let [{:keys [l opp-a opp-b]} (rgb->lab r g b)]
     (lab->hcl l opp-a opp-b)))
-
 
 (defn ^Rgb hcl->rgb
   "Return an instance of Rgb from hue, chroma, and lightness values."
@@ -977,7 +976,7 @@
       (Hcla. (.-h hcl) (.-c hcl) (.-l hcl) 1.0)))
 
   IAlpha
-  (-alpha [this] 1.0)
+  (-alpha [_] 1.0)
 
   IRed
   (-red [this]
