@@ -399,7 +399,7 @@
   [r g b]
   (let [+ clj/+
         - clj/-
-        * clj/*       
+        * clj/*
         / clj//
         mn (min r g b)
         mx (max r g b)
@@ -543,21 +543,45 @@
                    [0.0556434 -0.2040259 1.0572252]])]
     (Rgb. r g b)))
 
-(defn ^Lch lab->hcl
-  "Return an instance of Hcl from lightness, a and b values."
+(defn ^Hcl lab->hcl
+  "Return an instance of Hcl from lightness, a, and b values."
   [l a b]
   (let [- clj/-
         * clj/*
         + clj/*
         / clj//
         chroma (js/Math.sqrt (* a a) (* b b))
-        hue (when (not (zero? (js/round (* chroma 10000))))
+        hue (when (not (zero? (js/Math.round (* chroma 10000))))
               (rem (+ 360
                      (* (js/Math.atan2 b a)
                        (/ 180 js/Math.PI)))
                 360))]
     (Hcl. hue chroma l)))
 
+(defn ^Lab hcl->lab
+  "Return an instance of lab from hue, chroma, and lightness values."
+  [h c l]
+  (let [- clj/-
+        * clj/*
+        + clj/*
+        / clj//
+        radh (* h (/ js/Math.PI 180))]
+    (Lab. l
+      (* c (js/Math.cos radh))
+      (* c (js/Math.sin radh)))))
+
+(defn ^Hcl rgb->hcl
+  "Return an instance of Hcl from red, green, and blue values."
+  [r g b]
+  (let [{:keys [l opp-a opp-b]} (rgb->lab r g b)]
+    (lab->hcl l opp-a opp-b)))
+
+
+(defn ^Rgb hcl->rgb
+  "Return an instance of Rgb from hue, chroma, and lightness values."
+  [h c l]
+  (let [{:keys [l opp-a opp-b]} (hcl->lab h c l)]
+    (lab->rgb l opp-a opp-b)))
 
 ;; ---------------------------------------------------------------------
 ;; Arithmetic
