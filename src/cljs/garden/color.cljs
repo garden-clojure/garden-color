@@ -583,6 +583,30 @@
   (let [{:keys [l opp-a opp-b]} (hcl->lab h c l)]
     (lab->rgb l opp-a opp-b)))
 
+(defn ^Hsl lab->hsl
+  "Return an instance of Hsl from lightness, a, and b values."
+  [l a b]
+  (let [{:keys [r g b]} (lab->rgb l a b)]
+    (rgb->hsl r g b)))
+
+(defn ^Lab hsl->lab
+  "Return an instance of Lab from hue, saturation, and lightness values."
+  [h s l]
+  (let [{:keys [r g b]} (hsl->rgb h s l)]
+    (rgb->lab r g b)))
+
+(defn ^Hsl hcl->hsl
+  "Return an instance of Hsl from hue, chroma, and lightness values."
+  [h c l]
+  (let [{:keys [r g b]} (hcl->rgb h c l)]
+    (rgb->hsl r g b)))
+
+(defn ^Hcl hsl->hcl
+  "Return an instance of Hcl from hue, saturation, and lightness values."
+  [h s l]
+  (let [{:keys [r g b]} (hsl->rgb h s l)]
+    (rgb->hcl r g b)))
+
 ;; ---------------------------------------------------------------------
 ;; Arithmetic
 
@@ -785,6 +809,24 @@
      (let [hsl ^Hsl (-hsl this)]
        (Hsla. (.-h hsl) (.-s hsl) (.-l hsl) 1.0)))
 
+   ILab
+   (-lab [this]
+     (rgb->lab (.-r this) (.-g this) (.-b this)))
+
+   ILaba
+   (-laba [this]
+     (let [lab ^Lab (-lab this)]
+       (Laba. (.-l lab) (.-astar lab) (.-bstar lab) 1.0)))
+
+   IHcl
+   (-hcl [this]
+     (rgb->hcl (.-r this) (.-g this) (.-b this)))
+
+   IHcla
+   (-hcla [this]
+     (let [hcl ^Hcl (-hcl this)]
+       (Hcla. (.-h hcl) (.-c hcl) (.-l hcl) 1.0)))
+
    IRed
    (-red [this]
      (.-r this))
@@ -810,7 +852,19 @@
 
    ILightness
    (-lightness [this]
-     (.-l ^Hsl (-hsl this))))
+     (.-l ^Hsl (-hsl this)))
+
+   IA
+   (-a [this]
+     (.-astar ^Lab (-lab this)))
+
+   IB
+   (-b [this]
+     (.-bstar ^Lab (-lab this)))
+
+   IChroma
+   (-chroma [this]
+     (.-c ^Hcl (-hcl this))))
 
 (extend-type Rgba
   IRgb
@@ -820,7 +874,6 @@
   IRgba
   (-rgba [this] this)
 
-  
   IHsl
   (-hsl [this]
     (rgb->hsl (.-r this) (.-g this) (.-b this)))
@@ -829,6 +882,24 @@
   (-hsla [this]
     (let [hsl ^Hsl (-hsl this)]
       (Hsla. (.-h hsl) (.-s hsl) (.-l hsl) (.-a this))))
+
+  ILab
+  (-lab [this]
+    (rgb->lab (.-r this) (.-g this) (.-b this)))
+
+  ILaba
+  (-laba [this]
+    (let [lab ^Lab (-lab this)]
+      (Laba. (.-l lab) (.-astar lab) (.-bstar lab) (.-a this))))
+
+  IHcl
+  (-hcl [this]
+    (rgb->hcl (.-r this) (.-g this) (.-b this)))
+
+  IHcla
+  (-hcla [this]
+    (let [hcl ^Hcl (-hcl this)]
+      (Hcla. (.-h hcl) (.-c hcl) (.-l hcl) (.-a this))))
 
   IAlpha
   (-alpha [this]
@@ -856,7 +927,19 @@
 
   ILightness
   (-lightness [this]
-    (.-l ^Hsl (-hsl this)))) 
+    (.-l ^Hsl (-hsl this)))
+
+  IA
+  (-a [this]
+    (.-astar ^Lab (-lab this)))
+
+  IB
+  (-b [this]
+    (.-bstar ^Lab (-lab this)))
+
+  IChroma
+  (-chroma [this]
+    (.-c ^Hcl (-hcl this))))
 
 (extend-type Hsl
   IHsl
@@ -874,6 +957,24 @@
   (-rgba [this]
     (let [rgb (hsl->rgb (.-h this) (.-s this) (.-l this))]
       (Rgba. (.-r rgb) (.-g rgb) (.-b rgb) 1.0)))
+
+  ILab
+  (-lab [this]
+    (hsl->lab (.-h this) (.-s this) (.-l this)))
+
+  ILaba
+  (-laba [this]
+    (let [lab ^Lab (-lab this)]
+      (Laba. (.-l lab) (.-astar lab) (.-bstar lab) 1.0)))
+
+  IHcl
+  (-hcl [this]
+    (hsl->hcl (.-h this) (.-s this) (.-l this)))
+
+  IHcla
+  (-hcla [this]
+    (let [hcl ^Hcl (-hcl this)]
+      (Hcla. (.-h hcl) (.-c hcl) (.-l hcl) 1.0)))
 
   IAlpha
   (-alpha [this] 1.0)
@@ -900,7 +1001,19 @@
 
   ILightness
   (-lightness [this]
-    (.-l this)))
+    (.-l this))
+
+  IA
+  (-a [this]
+    (.-astar ^Lab (-lab this)))
+
+  IB
+  (-b [this]
+    (.-bstar ^Lab (-lab this)))
+
+  IChroma
+  (-chroma [this]
+    (.-c ^Hcl (-hcl this))))
 
 (extend-type Hsla
   IHsl
@@ -918,6 +1031,24 @@
   (-rgba [this]
     (let [rgb (hsl->rgb (.-h this) (.-s this) (.-l this))]
       (Rgba. (.-r rgb) (.-g rgb) (.-b rgb) (.-a this))))
+
+  ILab
+  (-lab [this]
+    (hsl->lab (.-h this) (.-s this) (.-l this)))
+
+  ILaba
+  (-laba [this]
+    (let [lab ^Lab (-lab this)]
+      (Laba. (.-l lab) (.-astar lab) (.-bstar lab) (.-a this))))
+
+  IHcl
+  (-hcl [this]
+    (hsl->hcl (.-h this) (.-s this) (.-l this)))
+
+  IHcla
+  (-hcla [this]
+    (let [hcl ^Hcl (-hcl this)]
+      (Hcla. (.-h hcl) (.-c hcl) (.-l hcl) (.-a this))))
 
   IAlpha
   (-alpha [this]
@@ -945,7 +1076,317 @@
 
   ILightness
   (-lightness [this]
-    (.-l this)))
+    (.-l this))
+
+  IA
+  (-a [this]
+    (.-astar ^Lab (-lab this)))
+
+  IB
+  (-b [this]
+    (.-bstar ^Lab (-lab this)))
+
+  IChroma
+  (-chroma [this]
+    (.-c ^Hcl (-hcl this))))
+
+(extend-type Lab
+  ILab
+  (-lab [this] this)
+
+  ILaba
+  (-laba [this]
+    (Laba. (.-l this) (.-astar this) (.-bstar this) 1.0))
+
+  IHsl
+  (-hsl [this]
+    (lab->hsl (.-l this) (.-astar this) (.-bstar this)))
+
+  IHsla
+  (-hsla [this]
+    (let [hsl ^Hsl (-hsl this)]
+      (Hsla. (.-h hsl) (.-s hsl) (.-l hsl) 1.0)))
+
+  IRgb
+  (-rgb [this]
+    (lab->rgb (.-l this) (.-astar this) (.-bstar this)))
+
+  IRgba
+  (-rgba [this]
+    (let [rgb ^Rgb (-rgb this)]
+      (Rgba. (.-r rgb) (.-g rgb) (.-b rgb) 1.0)))
+
+  IHcl
+  (-hcl [this]
+    (lab->hcl (.-l this) (.-astar this) (.-bstar this)))
+
+  IHcla
+  (-hcla [this]
+    (let [hcl ^Hcl (-hcl this)]
+      (Hcla. (.-h hcl) (.-c hcl) (.-l hcl) 1.0)))
+
+  IAlpha
+  (-alpha [this] 1.0)
+
+  IRed
+  (-red [this]
+    (.-r (rgb this)))
+
+  IGreen
+  (-green [this]
+    (.-g (rgb this)))
+
+  IBlue
+  (-blue [this]
+    (.-b (rgb this)))
+
+  IHue
+  (-hue [this]
+    (.-h ^Hsl (-hsl this)))
+
+  ISaturation
+  (-saturation [this]
+    (.-s ^Hsl (-hsl this)))
+
+  ILightness
+  (-lightness [this]
+    (.-l this))
+
+  IA
+  (-a [this]
+    (.-astar this))
+
+  IB
+  (-b [this]
+    (.-bstar this))
+
+  IChroma
+  (-chroma [this]
+    (.-c ^Hcl (-hcl this))))
+
+(extend-type Laba
+  ILab
+  (-lab [this]
+    (Lab. (.-l this) (.-astar this) (.-bstar this)))
+
+  ILaba
+  (-laba [this] this)
+
+  IHsl
+  (-hsl [this]
+    (lab->hsl (.-l this) (.-astar this) (.-bstar this)))
+
+  IHsla
+  (-hsla [this]
+    (let [hsl ^Hsl (-hsl this)]
+      (Hsla. (.-h hsl) (.-s hsl) (.-l hsl) (.-a this))))
+
+  IRgb
+  (-rgb [this]
+    (lab->rgb (.-l this) (.-astar this) (.-bstar this)))
+
+  IRgba
+  (-rgba [this]
+    (let [rgb ^Rgb (-rgb this)]
+      (Rgba. (.-r rgb) (.-g rgb) (.-b rgb) (.-a this))))
+
+  IHcl
+  (-hcl [this]
+    (lab->hcl (.-l this) (.-astar this) (.-bstar this)))
+
+  IHcla
+  (-hcla [this]
+    (let [hcl ^Hcl (-hcl this)]
+      (Hcla. (.-h hcl) (.-c hcl) (.-l hcl) (.-a this))))
+
+  IAlpha
+  (-alpha [this]
+    (.-a this))
+
+  IRed
+  (-red [this]
+    (.-r (rgb this)))
+
+  IGreen
+  (-green [this]
+    (.-g (rgb this)))
+
+  IBlue
+  (-blue [this]
+    (.-b (rgb this)))
+
+  IHue
+  (-hue [this]
+    (.-h ^Hsl (-hsl this)))
+
+  ISaturation
+  (-saturation [this]
+    (.-s ^Hsl (-hsl this)))
+
+  ILightness
+  (-lightness [this]
+    (.-l this))
+
+  IA
+  (-a [this]
+    (.-astar this))
+
+  IB
+  (-b [this]
+    (.-bstar this))
+
+  IChroma
+  (-chroma [this]
+    (.-c ^Hcl (-hcl this))))
+
+(extend-type Hcl
+  IHcl
+  (-hcl [this] this)
+
+  IHcla
+  (-hcla [this]
+    (Hcla. (.-h hcl) (.-c hcl) (.-l hcl) 1.0))
+
+  ILab
+  (-lab [this]
+    (hcl->lab (.-h hcl) (.-c hcl) (.-l hcl)))
+
+  ILaba
+  (-laba [this]
+    (let [lab ^Lab (-lab this)]
+      (Laba. (.-l lab) (.-astar lab) (.-bstar lab) 1.0)))
+
+  IHsl
+  (-hsl [this]
+    (hcl->hsl (.-h this) (.-c this) (.-l this)))
+
+  IHsla
+  (-hsla [this]
+    (let [hsl ^Hsl (-hsl this)]
+      (Hsla. (.-h hsl) (.-s hsl) (.-l hsl) 1.0)))
+
+  IRgb
+  (-rgb [this]
+    (hcl->rgb (.-h this) (.-c this) (.-l this)))
+
+  IRgba
+  (-rgba [this]
+    (let [rgb ^Rgb (-rgb this)]
+      (Rgba. (.-r rgb) (.-g rgb) (.-b rgb) 1.0)))
+
+  IAlpha
+  (-alpha [this] 1.0)
+
+  IRed
+  (-red [this]
+    (.-r (rgb this)))
+
+  IGreen
+  (-green [this]
+    (.-g (rgb this)))
+
+  IBlue
+  (-blue [this]
+    (.-b (rgb this)))
+
+  IHue
+  (-hue [this]
+    (.-h this))
+
+  ISaturation
+  (-saturation [this]
+    (.-s ^Hsl (-hsl this)))
+
+  ILightness
+  (-lightness [this]
+    (.-l this))
+
+  IA
+  (-a [this]
+    (.-astar ^Lab (-lab this)))
+
+  IB
+  (-b [this]
+    (.-bstar ^Lab (-lab this)))
+
+  IChroma
+  (-chroma [this]
+    (.-c this)))
+
+(extend-type Hcla
+  IHcl
+  (-hcl [this]
+    (Hcla. (.-h this) (.-c this) (.-l this) 1))
+
+  IHcla
+  (-hcla [this] this)
+
+  ILab
+  (-lab [this]
+    (hcl->lab (.-h hcl) (.-c hcl) (.-l hcl)))
+
+  ILaba
+  (-laba [this]
+    (let [lab ^Lab (-lab this)]
+      (Laba. (.-l lab) (.-astar lab) (.-bstar lab) (.-a this))))
+
+  IHsl
+  (-hsl [this]
+    (hcl->hsl (.-h this) (.-c this) (.-l this)))
+
+  IHsla
+  (-hsla [this]
+    (let [hsl ^Hsl (-hsl this)]
+      (Hsla. (.-h hsl) (.-s hsl) (.-l hsl) (.-a this))))
+
+  IRgb
+  (-rgb [this]
+    (hcl->rgb (.-h this) (.-c this) (.-l this)))
+
+  IRgba
+  (-rgba [this]
+    (let [rgb ^Rgb (-rgb this)]
+      (Rgba. (.-r rgb) (.-g rgb) (.-b rgb) (.-a this))))
+
+  IAlpha
+  (-alpha [this]
+    (.-a this))
+
+  IRed
+  (-red [this]
+    (.-r (rgb this)))
+
+  IGreen
+  (-green [this]
+    (.-g (rgb this)))
+
+  IBlue
+  (-blue [this]
+    (.-b (rgb this)))
+
+  IHue
+  (-hue [this]
+    (.-h this))
+
+  ISaturation
+  (-saturation [this]
+    (.-s ^Hsl (-hsl this)))
+
+  ILightness
+  (-lightness [this]
+    (.-l this))
+
+  IA
+  (-a [this]
+    (.-astar ^Lab (-lab this)))
+
+  IB
+  (-b [this]
+    (.-bstar ^Lab (-lab this)))
+
+  IChroma
+  (-chroma [this]
+    (.-c this)))
 
 ;;; Numbers
 
