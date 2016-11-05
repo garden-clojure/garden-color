@@ -461,9 +461,25 @@
         b (Math/round (* 0xff (+ b' m)))]
     (Rgb. r g b)))
 
-(def lab-constants
-  {:kn 18
-   :xn 0.950470
+(def ^:private lab-constants
+  " Note: xyz-lab will be called f(t) below for brevity and consistency with literature.
+
+  xn, yn, zn - CIE XYZ tristimulus values for the white point under Illuminant D65.
+  (See https://en.wikipedia.org/wiki/Lab_color_space#CIELAB-CIEXYZ_conversions)
+
+  t3 - The point at which f(t) is made discontinuous.
+  Because f(t) approaches infinity at t=0, f(t) is made linear below below this value.
+  An approximation of (6/29^3).
+
+  t2 - The slope of the linear part of f(t).
+  An approximation of the inverse of (1/3)((29/6)^2).
+
+  t1 - The slope of the reverse transformation of f(t).
+  An approximation of 3(6/29)^2.
+
+  t0 - The intercept of the linear part of f(t).
+  An approximation of 4/29."
+  {:xn 0.950470
    :yn 1
    :zn 1.088830
    :t0 0.137931034
