@@ -1,5 +1,5 @@
 (ns garden.color
-  (:refer-clojure :exclude [complement long + - * /])
+  (:refer-clojure :exclude [complement long + - * / bound-fn])
   (:require
    [clojure.core :as clj]
    [clojure.string :as string]
@@ -515,48 +515,48 @@
 ;;; Color types
 
 (extend-type Rgb
-   IRgb
-   (-rgb [this] this)
+  IRgb
+  (-rgb [this] this)
 
-   IRgba
-   (-rgba [this]
-     (Rgba. (.-r this) (.-g this) (.-b this) 1.0))
+  IRgba
+  (-rgba [this]
+    (Rgba. (.-r this) (.-g this) (.-b this) 1.0))
 
-   IHsl
-   (-hsl [this]
-     (rgb->hsl (.-r this) (.-g this) (.-b this)))
+  IHsl
+  (-hsl [this]
+    (rgb->hsl (.-r this) (.-g this) (.-b this)))
 
-   IHsla
-   (-hsla [this]
-     (let [hsl ^Hsl (-hsl this)]
-       (Hsla. (.-h hsl) (.-s hsl) (.-l hsl) 1.0)))
+  IHsla
+  (-hsla [this]
+    (let [hsl ^Hsl (-hsl this)]
+      (Hsla. (.-h hsl) (.-s hsl) (.-l hsl) 1.0)))
 
-   IRed
-   (-red [this]
-     (.-r this))
+  IRed
+  (-red [this]
+    (.-r this))
 
-   IGreen
-   (-green [this]
-     (.-g this))
+  IGreen
+  (-green [this]
+    (.-g this))
 
-   IBlue
-   (-blue [this]
-     (.-b this))
+  IBlue
+  (-blue [this]
+    (.-b this))
 
-   IAlpha
-   (-alpha [_] 1.0)
+  IAlpha
+  (-alpha [_] 1.0)
 
-   IHue
-   (-hue [this]
-     (.-h ^Hsl (-hsl this)))
+  IHue
+  (-hue [this]
+    (.-h ^Hsl (-hsl this)))
 
-   ISaturation
-   (-saturation [this]
-     (.-s ^Hsl (-hsl this)))
+  ISaturation
+  (-saturation [this]
+    (.-s ^Hsl (-hsl this)))
 
-   ILightness
-   (-lightness [this]
-     (.-l ^Hsl (-hsl this))))
+  ILightness
+  (-lightness [this]
+    (.-l ^Hsl (-hsl this))))
 
 (extend-type Rgba
   IRgb
