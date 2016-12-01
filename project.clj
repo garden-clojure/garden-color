@@ -1,11 +1,11 @@
-(defproject garden/garden-color "1.0.0-SNAPSHOT"
+(defproject garden/garden-color "1.0.0-RC1"
   :description "Utilities for working with color."
   :url "http://github.com/garden-clojure/garden-color"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
   :dependencies
-  [[org.clojure/clojure "1.9.0-alpha13"]
+  [[org.clojure/clojure "1.9.0-alpha13" :scope "provided"]
    [org.clojure/clojurescript "1.9.293" :scope "provided"]]
 
   :source-paths
@@ -23,7 +23,8 @@
     ["src/clj" "src/cljs" "dev"]
 
     :plugins
-    [[lein-cljsbuild "1.1.4"]
+    [[com.jakemccrary/lein-test-refresh "0.17.0"]
+     [lein-cljsbuild "1.1.4"]
      [lein-doo "0.1.7"]]
 
     :repl-options
