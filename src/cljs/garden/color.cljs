@@ -1,5 +1,5 @@
 (ns garden.color
-  (:refer-clojure :exclude [complement long + - * /])
+  (:refer-clojure :exclude [complement long + - * / bound-fn])
   (:require
    [cljs.core :as clj]
    [clojure.string :as string]
