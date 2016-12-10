@@ -566,7 +566,7 @@
         * clj/*
         + clj/*
         / clj//
-        chroma (js/Math.sqrt (* a a) (* b b))
+        chroma (js/Math.sqrt (+ (* a a) (* b b)))
         hue (when (not (zero? (js/Math.round (* chroma 10000))))
               (rem (+ 360
                      (* (js/Math.atan2 b a)

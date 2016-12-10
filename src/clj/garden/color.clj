@@ -551,7 +551,7 @@
                     (* t t t)
                     (* t2 (- t t0))))
         xyz-rgb (fn [r]
-                  (js/Math.round
+                  (Math/round
                     (* 255 (if (<= r 0.00304)
                              (* 12.92 r)
                              (- (* 1.055 (Math/pow r
@@ -575,7 +575,7 @@
         * clj/*
         + clj/*
         / clj//
-        chroma (js/Math.sqrt (* a a) (* b b))
+        chroma (Math/pow (+ (* a a) (* b b)) 0.5)
         hue (when (not (zero? (Math/round (* chroma 10000))))
               (rem (+ 360
                      (* (Math/atan2 b a)
