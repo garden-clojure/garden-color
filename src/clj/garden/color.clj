@@ -478,13 +478,13 @@
 
   t3 - The point at which f(t) is made discontinuous.
   Because f(t) approaches infinity at t=0, f(t) is made linear below below this value.
-  An approximation of (6/29^3).
+  An approximation of (t1^3).
 
   t2 - The slope of the linear part of f(t).
-  An approximation of the inverse of (1/3)((29/6)^2).
+  An approximation of 3(t1 ^ 2).
 
   t1 - The slope of the reverse transformation of f(t).
-  An approximation of 3(6/29)^2.
+  An approximation of 6/29.
 
   t0 - The intercept of the linear part of f(t).
   An approximation of 4/29."
@@ -500,24 +500,24 @@
   "Intermediate conversion from rgb to CIEXYZ"
   [r g b]
   (let [/ clj//
-        + clj/+
         * clj/*
+        + clj/+
         - clj/-
-        rgb-xyz (fn [r]
-                  (let [r (/ r 255)]
-                    (if (<= r 0.04045)
-                      (/ r 12.92)
-                      (Math/pow (/ (+ r 0.055) 1.055) 2.4))))
+        rgb-xyz (fn [v]
+                  (let [v (/ v 255)]
+                    (if (<= v 0.04045)
+                      (/ v 12.92)
+                      (Math/pow (/ (+ v 0.055) 1.055) 2.4))))
         xyz-lab (fn [t]
                   (let [{:keys [t0 t2 t3]} lab-constants]
                     (if (> t t3)
                       (Math/pow t (/ 1 3))
                       (+ t0 (/ t t2)))))
-        rgb (mapv rgb-xyz [r g b])
+        xyz (mapv rgb-xyz [r g b])
         {:keys [xn yn zn]} lab-constants]
     (mapv
       (fn [consts n]
-        (xyz-lab (/ (apply + (map * consts rgb)) n)))
+        (xyz-lab (/ (apply + (map * consts xyz)) n)))
       [[0.4124564 0.3575761 0.1804375]
        [0.2126729 0.7151522 0.0721750]
        [0.0193339 0.1191920 0.9503041]]
@@ -528,7 +528,7 @@
   [r g b]
   (let [- clj/-
         * clj/*
-        + clj/*
+        + clj/+
         / clj//
         [x y z] (rgb->xyz r g b)]
     (Lab.
@@ -541,28 +541,32 @@
   [l a b]
   (let [- clj/-
         * clj/*
-        + clj/*
+        + clj/+
         / clj//
         {:keys [t0 t1 t2 xn yn zn]} lab-constants
         limit (comp (partial min 255)
                 (partial max 0))
-        lab-xyz (fn [t]
-                  (if (> t t1)
-                    (* t t t)
-                    (* t2 (- t t0))))
-        xyz-rgb (fn [r]
-                  (Math/round
-                    (* 255 (if (<= r 0.00304)
-                             (* 12.92 r)
-                             (- (* 1.055 (Math/pow r
-                                           (/ 1 2.4)))
-                               0.055)))))
-        y (* yn (lab-xyz (/ (+ 16 l) 116)))
-        x (* xn (lab-xyz (if (nil? a) y (+ y (/ a 500)))))
-        z (* zn (lab-xyz (if (nil? b) y (- y (/ b 200)))))
+        lab->xyz (fn [t]
+                   (if (> t t1)
+                     (* t t t)
+                     (* t2 (- t t0))))
+        xyz->rgb (fn [r]
+                   (Math/round
+                     (* 255 (if (<= r 0.00304)
+                              (* 12.92 r)
+                              (- (* 1.055 (Math/pow r
+                                            (/ 1 2.4)))
+                                0.055)))))
+        y* (/ (+ 16 l) 116)
+        x* (if (nil? a) y* (+ y* (/ a 500)))
+        z* (if (nil? b) y* (- y* (/ b 200)))
+        y (* yn (lab->xyz y*))
+        x (* xn (lab->xyz x*))
+        z (* zn (lab->xyz z*))
         [r g b] (mapv
                   (fn [consts]
-                    (limit (apply + (map * consts [x y z]))))
+                    (->> (map * consts [x y z])
+                      (apply +) xyz->rgb limit))
                   [[3.2404542 -1.5371385 -0.4985314]
                    [-0.9692660 1.8760108 0.0415560]
                    [0.0556434 -0.2040259 1.0572252]])]
@@ -573,7 +577,7 @@
   [l a b]
   (let [- clj/-
         * clj/*
-        + clj/*
+        + clj/+
         / clj//
         chroma (Math/pow (+ (* a a) (* b b)) 0.5)
         hue (when (not (zero? (Math/round (* chroma 10000))))
@@ -588,7 +592,7 @@
   [h c l]
   (let [- clj/-
         * clj/*
-        + clj/*
+        + clj/+
         / clj//
         radh (* h (/ Math/PI 180))]
     (Lab. l
