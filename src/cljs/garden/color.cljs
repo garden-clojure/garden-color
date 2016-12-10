@@ -469,13 +469,13 @@
 
   t3 - The point at which f(t) is made discontinuous.
   Because f(t) approaches infinity at t=0, f(t) is made linear below below this value.
-  An approximation of (6/29^3).
+  An approximation of (t1^3).
 
   t2 - The slope of the linear part of f(t).
-  An approximation of the inverse of (1/3)((29/6)^2).
+  An approximation of 3(t1 ^ 2).
 
   t1 - The slope of the reverse transformation of f(t).
-  An approximation of 3(6/29)^2.
+  An approximation of 6/29.
 
   t0 - The intercept of the linear part of f(t).
   An approximation of 4/29."
