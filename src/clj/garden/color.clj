@@ -271,13 +271,13 @@
 
 (defn ^Number astar
   [x]
-  {:post [(number? %)]}
+  {:post [(number? %) (<= -128 % 128)]}
   ;; TODO: include the proper domain. Read all the papers.
   (-astar x))
 
 (defn ^Number bstar
   [x]
-  {:post [(number? %)]}
+  {:post [(number? %) (<= -128 % 128)]}
   ;; TODO: include the proper domain. Read all the papers.
   (-bstar x))
 
