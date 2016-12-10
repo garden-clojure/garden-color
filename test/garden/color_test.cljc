@@ -151,12 +151,20 @@
        (c/long (c/rgb i))
        (c/long (c/rgba i))
        (c/long (c/hsl i))
-       (c/long (c/hsla i)))))
+       (c/long (c/hsla i))
+       (c/long (c/lab i))
+       (c/long (c/laba i))
+       #_(c/long (c/hcl i))
+       #_(c/long (c/hcla i)))))
 
 (defspec hsl-to-rgb-is-equal-to-rgb-to-hsl 10000
   (prop/for-all [i gen/pos-int]
     (= (-> i c/hsl c/rgb c/long)
-       (-> i c/rgb c/hsl c/long))))
+      (-> i c/rgb c/hsl c/long)
+      (-> i c/lab c/rgb c/long)
+      (-> i c/rgb c/lab c/long)
+      #_(-> i c/hcl c/rgb c/long)
+      #_(-> i c/rgb c/hcl c/long))))
 
 (defspec invert-of-invert-is-equal-to-the-original-value 10000
   (prop/for-all [i gen/pos-int]
