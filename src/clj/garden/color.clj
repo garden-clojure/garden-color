@@ -59,11 +59,11 @@
   (-laba [this]))
 
 (defprotocol IA
-  "Return the CIELAB color-opponent dimension 'a' from this"
+  "Return the red-green CIELAB color-opponent dimension 'a' from this"
   (-astar [this]))
 
 (defprotocol IB
-  "Return the CIELAB color-opponent dimension 'b' from this"
+  "Return the blue-yellow CIELAB color-opponent dimension 'b' from this"
   (-bstar [this]))
 
 (defprotocol IHcl
@@ -364,7 +364,7 @@
   [x]
   {:post [(instance? Hcla %)]}
   (if (satisfies? IHcla x)
-    (-hcla x)
+  (-hcla x)
     (Hcla. (hue x) (chroma x) (lightness x) (alpha x))))
 
 (defn ^String hex
@@ -602,14 +602,14 @@
 (defn ^Hcl rgb->hcl
   "Return an instance of Hcl from red, green, and blue values."
   [r g b]
-  (let [{:keys [l opp-a opp-b]} (rgb->lab r g b)]
-    (lab->hcl l opp-a opp-b)))
+  (let [{:keys [l astar bstar]} (rgb->lab r g b)]
+    (lab->hcl l astar bstar)))
 
 (defn ^Rgb hcl->rgb
   "Return an instance of Rgb from hue, chroma, and lightness values."
   [h c l]
-  (let [{:keys [l opp-a opp-b]} (hcl->lab h c l)]
-    (lab->rgb l opp-a opp-b)))
+  (let [{:keys [l astar bstar]} (hcl->lab h c l)]
+    (lab->rgb l astar bstar)))
 
 (defn ^Hsl lab->hsl
   "Return an instance of Hsl from lightness, a, and b values."
@@ -696,7 +696,7 @@
                  (rgb a)
                  (Rgb. 255.0 255.0 255.0)))
   ([a b]
-     (merge-with clj// 
+     (merge-with clj//
                  (rgb a)
                  (rgb b)))
   ([a b & more]
@@ -1431,6 +1431,26 @@
   (-hsl [l]
     (hsl (-rgb l)))
 
+  IHsla
+  (-hsla [l]
+    (hsla (-rgba l)))
+
+  ILab
+  (-lab [l]
+    (lab (-rgb l)))
+
+  ILaba
+  (-laba [l]
+    (laba (-rgba l)))
+
+  IHcl
+  (-hcl [l]
+    (hcl (-rgb l)))
+
+  IHcla
+  (-hcla [l]
+    (hcla (-rgba l)))
+
   IAlpha
   (-alpha [l]
     (if (< 0 (bit-and l 0xff000000))
@@ -1460,7 +1480,19 @@
 
   ILightness
   (-lightness [l]
-    (lightness (hsl l))))
+    (lightness (hsl l)))
+
+  IA
+  (-astar [l]
+    (astar (lab l)))
+
+  IB
+  (-bstar [l]
+    (bstar (lab l)))
+
+  IChroma
+  (-chroma [l]
+    (chroma (hcl l))))
 
 (extend-type Integer
   IRgb
@@ -1478,6 +1510,22 @@
   IHsla
   (-hsla [i]
     (hsla (-rgba i)))
+
+  ILab
+  (-lab [i]
+    (lab (-rgb i)))
+
+  ILaba
+  (-laba [i]
+    (laba (-rgba i)))
+
+  IHcl
+  (-hcl [i]
+    (hcl (-rgb i)))
+
+  IHcla
+  (-hcla [i]
+    (hcla (-rgba i)))
 
   IAlpha
   (-alpha [i]
@@ -1506,7 +1554,19 @@
 
   ILightness
   (-lightness [i]
-    (lightness (hsl i))))
+    (lightness (hsl i)))
+
+  IA
+  (-astar [l]
+    (astar (lab l)))
+
+  IB
+  (-bstar [l]
+    (bstar (lab l)))
+
+  IChroma
+  (-chroma [l]
+    (chroma (hcl l))))
 
 
 ;;; String
