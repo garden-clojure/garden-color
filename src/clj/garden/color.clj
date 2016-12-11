@@ -50,6 +50,34 @@
   "Return the lightness value of this."
   (-lightness [this]))
 
+(defprotocol ILab
+  "Return an instance of (CIELAB) Lab from this."
+  (-lab [this]))
+
+(defprotocol ILaba
+  "return an instance of (CIELAB) Laba from this."
+  (-laba [this]))
+
+(defprotocol IA
+  "Return the red-green CIELAB color-opponent dimension 'a' from this"
+  (-astar [this]))
+
+(defprotocol IB
+  "Return the blue-yellow CIELAB color-opponent dimension 'b' from this"
+  (-bstar [this]))
+
+(defprotocol IHcl
+  "Return an instance of Hcl from this."
+  (-hcl [this]))
+
+(defprotocol IHcla
+  "Return an instance of Hcla from this."
+  (-hcla [this]))
+
+(defprotocol IChroma
+  "return the chroma value from this."
+  (-chroma [this]))
+
 (defprotocol IAlpha
   "Return the alpha channel value of this."
   (-alpha [this]))
@@ -104,6 +132,41 @@
   [x]
   (satisfies? ILightness x))
 
+(defn ilab?
+  "true if `x` satisfies `ILab`, false otherwise."
+  [x]
+  (satisfies? ILab x))
+
+(defn ilaba?
+  "true if `x` satisfies `ILaba`, false otherwise."
+  [x]
+  (satisfies? ILaba x))
+
+(defn ia?
+  "true if `x` satisfies `IA`, false otherwise."
+  [x]
+  (satisfies? IA x))
+
+(defn ib?
+  "true if `x` satisfies `IB`, false otherwise."
+  [x]
+  (satisfies? IB x))
+
+(defn ihcl?
+  "true if `x` satisfies `IHcl`, false otherwise."
+  [x]
+  (satisfies? IHcl x))
+
+(defn ihcla?
+  "true if `x` satisfies `IHcla`, false otherwise."
+  [x]
+  (satisfies? IHcla x))
+
+(defn ichroma?
+  "true if `x` satisfies `IChroma`, false otherwise."
+  [x]
+  (satisfies? IChroma x))
+
 (defn ialpha?
   "true if `x` satisfies `IAlpha`, false otherwise."
   [x]
@@ -116,6 +179,10 @@
 (defrecord Rgba [r g b a])
 (defrecord Hsl [h s l])
 (defrecord Hsla [h s l a])
+(defrecord Lab [l astar bstar])
+(defrecord Laba [l astar bstar a])
+(defrecord Hcl [h c l])
+(defrecord Hcla [h c l a])
 
 (defn rgb?
   "true if `x` is an instance of `Rgb`, false otherwise."
@@ -136,6 +203,26 @@
   "true if `x` is an instance of `Hsla`, false otherwise."
   [x]
   (instance? Hsla x))
+
+(defn lab?
+  "true if `x` is an instance of `Lab`, false otherwise."
+  [x]
+  (instance? Lab x))
+
+(defn laba?
+  "true if `x` is an instance of `Laba`, false otherwise."
+  [x]
+  (instance? Laba x))
+
+(defn hcl?
+  "true if `x` is an instance of `Hcl`, false otherwise."
+  [x]
+  (instance? Hcl x))
+
+(defn hcla?
+  "true if `x` is an instance of `Hcla`, false otherwise."
+  [x]
+  (instance? Hcla x))
 
 ;; ---------------------------------------------------------------------
 ;; Color functions
@@ -165,11 +252,11 @@
   (-blue x))
 
 
-;;; Hsl functions
+;;; Hsl, Lab, and Hcl functions
 
 (defn ^Number hue
   [x]
-  {:post [(number? %)]}
+  {:post [(number? %) (<= 0 % 360)]}
   (-hue x))
 
 (defn ^Number saturation
@@ -179,8 +266,25 @@
 
 (defn ^Number lightness
   [x]
-  {:post [(number? %) (<= 0 % 100)]}
+  {:post [(number? %) #_(<= 0 % 100)]}
   (-lightness x))
+
+(defn ^Number astar
+  [x]
+  {:post [(number? %) (<= -128 % 128)]}
+  ;; TODO: include the proper domain. Read all the papers.
+  (-astar x))
+
+(defn ^Number bstar
+  [x]
+  {:post [(number? %) (<= -128 % 128)]}
+  ;; TODO: include the proper domain. Read all the papers.
+  (-bstar x))
+
+(defn ^Number chroma
+  [x]
+  {:post [(number? %) (<= 0 % (Math/sqrt (clj/* 2 128 128)))]}
+  (-chroma x))
 
 (defn ^Number alpha
   [x]
@@ -209,7 +313,7 @@
     (-rgba x)
     (Rgba. (red x) (green x) (blue x) (lightness x))))
 
-(defn ^Hsl hsl 
+(defn ^Hsl hsl
   "Return an instance of Hsl. x must satisfy either IHsl or all of
   IHue, ISaturation, and ILightness."
   [x]
@@ -226,6 +330,42 @@
   (if (satisfies? IHsla x)
     (-hsla x)
     (Hsla. (hue x) (saturation x) (lightness x) (alpha x))))
+
+(defn ^Lab lab
+  "Return an instance of Lab. x must satisfy either ILab or all of
+  ILightness, IA, and IB."
+  [x]
+  {:post [(instance? Lab %)]}
+  (if (satisfies? ILab x)
+    (-lab x)
+    (Lab. (lightness x) (astar x) (bstar x))))
+
+(defn ^Laba laba
+  "Return an instance of Laba. x must satisfy either ILaba or all of
+  ILightness, IA, IB, and IAlpha"
+  [x]
+  {:post [(instance? Laba %)]}
+  (if (satisfies? ILaba x)
+    (-laba x)
+    (Laba. (lightness x) (astar x) (bstar x) (alpha x))))
+
+(defn ^Hcl hcl
+  "Return an instance of Hcl. x must satisfy either IHcl or all of
+  IHue, IChroma, and ILightness."
+  [x]
+  {:post [(instance? Hcl %)]}
+  (if (satisfies? IHcl x)
+    (-hcl x)
+    (Hcl. (hue x) (chroma x) (lightness x))))
+
+(defn ^Hcla hcla
+  "Return an instance of Hcla. x must satisfy either IHcla or all of
+  IHue, IChroma, ILightness, and IAlpha."
+  [x]
+  {:post [(instance? Hcla %)]}
+  (if (satisfies? IHcla x)
+    (-hcla x)
+    (Hcla. (hue x) (chroma x) (lightness x) (alpha x))))
 
 (defn ^String hex
   "Convert a color to string in hex format."
@@ -251,8 +391,8 @@
           g (.-g c)
           b (.-b c)]
       (bit-or (bit-shift-left r 16)
-              (bit-shift-left g 8)
-              b))))
+        (bit-shift-left g 8)
+        b))))
 
 ;; ---------------------------------------------------------------------
 ;; Conversion
@@ -264,7 +404,7 @@
   [r g b]
   (let [+ clj/+
         - clj/-
-        * clj/*       
+        * clj/*
         / clj//
         mn (min r g b)
         mx (max r g b)
@@ -274,15 +414,15 @@
 
             (= r mx)
             (* 60 (/ (- g b)
-                     (- mx mn)))
+                    (- mx mn)))
 
             (= g mx)
             (* 60 (+ 2 (/ (- b r)
-                          (- mx mn))))
+                         (- mx mn))))
 
             :else
             (* 60 (+ 4 (/ (- r g)
-                          (- mx mn)))))
+                         (- mx mn)))))
         l (/ (+ mn mx) 510)
         s (cond
             (= mn mx)
@@ -290,14 +430,14 @@
 
             (< l 0.5)
             (/ (- mx mn)
-               (+ mx mn))
+              (+ mx mn))
 
             :else
             (/ (- mx mn)
-               (- 510 mx mn)))]
+              (- 510 mx mn)))]
     (Hsl. (mod (double h) 360)
-          (* 100.0 s)
-          (* 100.0 l))))
+      (* 100.0 s)
+      (* 100.0 l))))
 
 ;;; From Hsl
 
@@ -319,16 +459,183 @@
         m (- l (/ c 2.0))
         [r' g' b']
         (cond
-         (or (== 0 h) (< 0 h 60))      [c x 0]
-         (or (== 60 h) (< 60 h 120))   [x c 0]
-         (or (== 120 h) (< 120 h 180)) [0 c x]
-         (or (== 180 h) (< 180 h 240)) [0 x c]
-         (or (== 240 h) (< 240 h 300)) [x 0 c]
-         (or (== 300 h) (< 300 h 360)) [c 0 x])
+          (or (== 0 h) (< 0 h 60))      [c x 0]
+          (or (== 60 h) (< 60 h 120))   [x c 0]
+          (or (== 120 h) (< 120 h 180)) [0 c x]
+          (or (== 180 h) (< 180 h 240)) [0 x c]
+          (or (== 240 h) (< 240 h 300)) [x 0 c]
+          (or (== 300 h) (< 300 h 360)) [c 0 x])
         r (Math/round ^Double (* 0xff (+ r' m)))
         g (Math/round ^Double (* 0xff (+ g' m)))
         b (Math/round ^Double (* 0xff (+ b' m)))]
     (Rgb. r g b)))
+
+(def ^:private lab-constants
+  " Note: xyz-lab will be called f(t) below for brevity and consistency with literature.
+
+  xn, yn, zn - CIE XYZ tristimulus values for the white point under Illuminant D65.
+  (See https://en.wikipedia.org/wiki/Lab_color_space#CIELAB-CIEXYZ_conversions)
+
+  t3 - The point at which f(t) is made discontinuous.
+  Because f(t) approaches infinity at t=0, f(t) is made linear below below this value.
+  An approximation of (t1^3).
+
+  t2 - The slope of the linear part of f(t).
+  An approximation of 3(t1 ^ 2).
+
+  t1 - The slope of the reverse transformation of f(t).
+  An approximation of 6/29.
+
+  t0 - The intercept of the linear part of f(t).
+  An approximation of 4/29."
+  {:xn 0.950470
+   :yn 1
+   :zn 1.088830
+   :t0 0.137931034
+   :t1 0.206896552
+   :t2 0.12841855
+   :t3 0.008856452})
+
+(defn- rgb->xyz
+  "Intermediate conversion from rgb to CIEXYZ"
+  [r g b]
+  (let [/ clj//
+        * clj/*
+        + clj/+
+        - clj/-
+        rgb-xyz (fn [v]
+                  (let [v (/ v 255)]
+                    (if (<= v 0.04045)
+                      (/ v 12.92)
+                      (Math/pow (/ (+ v 0.055) 1.055) 2.4))))
+        xyz-lab (fn [t]
+                  (let [{:keys [t0 t2 t3]} lab-constants]
+                    (if (> t t3)
+                      (Math/pow t (/ 1 3))
+                      (+ t0 (/ t t2)))))
+        xyz (mapv rgb-xyz [r g b])
+        {:keys [xn yn zn]} lab-constants]
+    (mapv
+      (fn [consts n]
+        (xyz-lab (/ (apply + (map * consts xyz)) n)))
+      [[0.4124564 0.3575761 0.1804375]
+       [0.2126729 0.7151522 0.0721750]
+       [0.0193339 0.1191920 0.9503041]]
+      [xn yn zn])))
+
+(defn ^Lab rgb->lab
+  "Return an instance of Lab from red, green, and blue values."
+  [r g b]
+  (let [- clj/-
+        * clj/*
+        + clj/+
+        / clj//
+        [x y z] (rgb->xyz r g b)]
+    (Lab.
+      (min 100 (max 0 (- (* 116 y) 16)))
+      (* 500 (- x y))
+      (* 200 (- y z)))))
+
+(defn ^Rgb lab->rgb
+  "Return an instance of Rgb from lightness, a, and b values."
+  [l a b]
+  (let [- clj/-
+        * clj/*
+        + clj/+
+        / clj//
+        {:keys [t0 t1 t2 xn yn zn]} lab-constants
+        limit (comp (partial min 255)
+                (partial max 0))
+        lab->xyz (fn [t]
+                   (if (> t t1)
+                     (* t t t)
+                     (* t2 (- t t0))))
+        xyz->rgb (fn [r]
+                   (Math/round
+                     (* 255 (if (<= r 0.00304)
+                              (* 12.92 r)
+                              (- (* 1.055 (Math/pow r
+                                            (/ 1 2.4)))
+                                0.055)))))
+        y* (/ (+ 16 l) 116)
+        x* (if (nil? a) y* (+ y* (/ a 500)))
+        z* (if (nil? b) y* (- y* (/ b 200)))
+        y (* yn (lab->xyz y*))
+        x (* xn (lab->xyz x*))
+        z (* zn (lab->xyz z*))
+        [r g b] (mapv
+                  (fn [consts]
+                    (->> (map * consts [x y z])
+                      (apply +) xyz->rgb limit))
+                  [[3.2404542 -1.5371385 -0.4985314]
+                   [-0.9692660 1.8760108 0.0415560]
+                   [0.0556434 -0.2040259 1.0572252]])]
+    (Rgb. r g b)))
+
+(defn ^Hcl lab->hcl
+  "Return an instance of Hcl from lightness, a, and b values."
+  [l a b]
+  (let [- clj/-
+        * clj/*
+        + clj/+
+        / clj//
+        chroma (Math/pow (+ (* a a) (* b b)) 0.5)
+        hue (if (not (zero? (Math/round (* chroma 10000))))
+              (rem (+ 360
+                     (* (Math/atan2 b a)
+                       (/ 180 Math/PI)))
+                360)
+              0)]
+    (Hcl. hue chroma l)))
+
+(defn ^Lab hcl->lab
+  "Return an instance of lab from hue, chroma, and lightness values."
+  [h c l]
+  (let [- clj/-
+        * clj/*
+        + clj/+
+        / clj//
+        radh (* h (/ Math/PI 180))]
+    (Lab. l
+      (* c (Math/cos radh))
+      (* c (Math/sin radh)))))
+
+(defn ^Hcl rgb->hcl
+  "Return an instance of Hcl from red, green, and blue values."
+  [r g b]
+  (let [{:keys [l astar bstar]} (rgb->lab r g b)]
+    (lab->hcl l astar bstar)))
+
+(defn ^Rgb hcl->rgb
+  "Return an instance of Rgb from hue, chroma, and lightness values."
+  [h c l]
+  (let [{:keys [l astar bstar]} (hcl->lab h c l)]
+    (lab->rgb l astar bstar)))
+
+(defn ^Hsl lab->hsl
+  "Return an instance of Hsl from lightness, a, and b values."
+  [l a b]
+  (let [{:keys [r g b]} (lab->rgb l a b)]
+    (rgb->hsl r g b)))
+
+(defn ^Lab hsl->lab
+  "Return an instance of Lab from hue, saturation, and lightness values."
+  [h s l]
+  (let [{:keys [r g b]} (hsl->rgb h s l)]
+    (assoc (rgb->lab r g b) :l l)))
+
+(defn ^Hsl hcl->hsl
+  "Return an instance of Hsl from hue, chroma, and lightness values."
+  [h c l]
+  (let [{:keys [r g b]} (hcl->rgb h c l)]
+    (assoc (rgb->hsl r g b) :h h :l l)))
+
+(defn ^Hcl hsl->hcl
+  "Return an instance of Hcl from hue, saturation, and lightness values."
+  [h s l]
+  (let [{:keys [r g b]} (hsl->rgb h s l)]
+    (assoc (rgb->hcl r g b) :h h :l l)))
+
 
 ;; ---------------------------------------------------------------------
 ;; Arithmetic
@@ -336,65 +643,65 @@
 (defn ^Rgb +
   "Compute the sum of the Rgb channels of one or more colors."
   ([]
-     ;; Black is the zero of Rgb.
-     (Rgb. 0 0 0))
+   ;; Black is the zero of Rgb.
+   (Rgb. 0 0 0))
   ([a]
-     (rgb a))
+   (rgb a))
   ([a b]
-     (merge-with
-      (fn [a b]
-        (min 255 (clj/+ a b)))
-      (rgb a)
-      (rgb b)))
+   (merge-with
+     (fn [a b]
+       (min 255 (clj/+ a b)))
+     (rgb a)
+     (rgb b)))
   ([a b & more]
-     (reduce + (+ a b) more)))
+   (reduce + (+ a b) more)))
 
 (defn ^Rgb -
   "Compute the difference of the Rgb channels of one or more colors."
   ([a]
-     ;; Since negative Rgb values don't exist I'm not sure what the
-     ;; right thing to do is. Would inversion make sense?
-     (rgb a))
+   ;; Since negative Rgb values don't exist I'm not sure what the
+   ;; right thing to do is. Would inversion make sense?
+   (rgb a))
   ([a b]
-     (let [c1 (rgb a) 
-           c2 (rgb b)]
-       (merge-with
-        (fn [a b]
-          (max 0 (clj/- a b)))
-        c1
-        c2)))
+   (let [c1 (rgb a)
+         c2 (rgb b)]
+     (merge-with
+       (fn [a b]
+         (max 0 (clj/- a b)))
+       c1
+       c2)))
   ([a b & more]
-     (reduce - (- a b) more)))
+   (reduce - (- a b) more)))
 
 (defn ^Rgb *
   "Compute the product of the Rgb channels of one or more colors."
   ([]
-     ;; White is the one of Rgb.
-     (Rgb. 255 255 255))
+   ;; White is the one of Rgb.
+   (Rgb. 255 255 255))
   ([a]
-     (rgb a))
+   (rgb a))
   ([a b]
-     (merge-with
-      (fn [a b]
-        (clj// (clj/* a b)
-               255.0))
-      (rgb a)
-      (rgb b)))
+   (merge-with
+     (fn [a b]
+       (clj// (clj/* a b)
+         255.0))
+     (rgb a)
+     (rgb b)))
   ([a b & more]
-     (reduce * (* a b) more)))
+   (reduce * (* a b) more)))
 
 (defn ^Rgb /
   "Compute the quotient of the Rgb channels of one or more colors."
   ([a]
-     (merge-with clj//
-                 (rgb a)
-                 (Rgb. 255.0 255.0 255.0)))
+   (merge-with clj//
+     (rgb a)
+     (Rgb. 255.0 255.0 255.0)))
   ([a b]
-     (merge-with clj// 
-                 (rgb a)
-                 (rgb b)))
+   (merge-with clj//
+     (rgb a)
+     (rgb b)))
   ([a b & more]
-     (reduce / (/ a b) more)))
+   (reduce / (/ a b) more)))
 
 
 ;; ---------------------------------------------------------------------
@@ -430,27 +737,27 @@
   [color]
   (let [c (rgba color)]
     (Rgba. (clj/- 255 (.-r c))
-           (clj/- 255 (.-g c))
-           (clj/- 255 (.-b c))
-           (.-a c))))
+      (clj/- 255 (.-g c))
+      (clj/- 255 (.-b c))
+      (.-a c))))
 
 (defn ^Rgba mix
   "Mix two or more colors by averaging their Rgba channels."
   ([color-1 color-2]
-     (let [c1 (rgba color-1)
-           c2 (rgba color-2)]
-       (merge-with
-        (fn [l r]
-          (clj// (clj/+ l r) 2.0))
-        c1 c2)))
+   (let [c1 (rgba color-1)
+         c2 (rgba color-2)]
+     (merge-with
+       (fn [l r]
+         (clj// (clj/+ l r) 2.0))
+       c1 c2)))
   ([color-1 color-2 & more]
-     (reduce mix (mix color-1 color-2) more)))
+   (reduce mix (mix color-1 color-2) more)))
 
 (defn hue-rotations
   [color & amounts]
   (map (fn [amount]
          (rotate-hue color amount))
-       amounts))
+    amounts))
 
 (defn complement
   "Return the complement of a color."
@@ -461,20 +768,20 @@
   "Given a color return a triple of the color and the two colors on
   either side of it's complement."
   ([color]
-     (split-complement color 130))
+   (split-complement color 130))
   ([color distance-from-complement]
-     (let [d (max 1 (min 179 distance-from-complement))]
-       (hue-rotations color 0 d (clj/- d)))))
+   (let [d (max 1 (min 179 distance-from-complement))]
+     (hue-rotations color 0 d (clj/- d)))))
 
 (defn analogous
   "Given a color return a triple of colors which are 0, 30, and 60
   degrees clockwise from it. If a second falsy argument is passed the
   returned values will be in a counter-clockwise direction."
   ([color]
-     (analogous color true))
+   (analogous color true))
   ([color clockwise?]
-     (let [sign (if clockwise? clj/+ clj/-)]
-       (hue-rotations color 0 (sign 30) (sign 60)))))
+   (let [sign (if clockwise? clj/+ clj/-)]
+     (hue-rotations color 0 (sign 30) (sign 60)))))
 
 (defn triad
   "Given a color return a triple of colors which are equidistance apart
@@ -488,25 +795,25 @@
   optional angle may be given for color of the second complement in the
   pair (this defaults to 90 when only color is passed)."
   ([color]
-     (tetrad color 90))
+   (tetrad color 90))
   ([color angle]
-     (let [degrees (max 1 (min 90 (Math/abs (double angle))))
-           color' (rotate-hue color degrees)]
-       [(rotate-hue color 0)
-        (complement color)
-        color'
-        (complement color')])))
+   (let [degrees (max 1 (min 90 (Math/abs (double angle))))
+         color' (rotate-hue color degrees)]
+     [(rotate-hue color 0)
+      (complement color)
+      color'
+      (complement color')])))
 
 (defn shades
   "Given a color return a list of shades from lightest to darkest by
   a step. By default the step is 10. White and black are excluded from
   the returned list."
   ([color]
-     (shades color 10))
+   (shades color 10))
   ([color step]
-     (let [c (hsl color)]
-       (for [i (range 1 (Math/floor (clj// 100.0 step)))]
-         (assoc c :l (clj/* i step))))))
+   (let [c (hsl color)]
+     (for [i (range 1 (Math/floor (clj// 100.0 step)))]
+       (assoc c :l (clj/* i step))))))
 
 
 ;; ---------------------------------------------------------------------
@@ -530,6 +837,24 @@
   (-hsla [this]
     (let [hsl ^Hsl (-hsl this)]
       (Hsla. (.-h hsl) (.-s hsl) (.-l hsl) 1.0)))
+
+  ILab
+  (-lab [this]
+    (rgb->lab (.-r this) (.-g this) (.-b this)))
+
+  ILaba
+  (-laba [this]
+    (let [lab ^Lab (-lab this)]
+      (Laba. (.-l lab) (.-astar lab) (.-bstar lab) 1.0)))
+
+  IHcl
+  (-hcl [this]
+    (rgb->hcl (.-r this) (.-g this) (.-b this)))
+
+  IHcla
+  (-hcla [this]
+    (let [hcl ^Hcl (-hcl this)]
+      (Hcla. (.-h hcl) (.-c hcl) (.-l hcl) 1.0)))
 
   IRed
   (-red [this]
@@ -556,7 +881,19 @@
 
   ILightness
   (-lightness [this]
-    (.-l ^Hsl (-hsl this))))
+    (.-l ^Hsl (-hsl this)))
+
+  IA
+  (-astar [this]
+    (.-astar ^Lab (-lab this)))
+
+  IB
+  (-bstar [this]
+    (.-bstar ^Lab (-lab this)))
+
+  IChroma
+  (-chroma [this]
+    (.-c ^Hcl (-hcl this))))
 
 (extend-type Rgba
   IRgb
@@ -566,7 +903,6 @@
   IRgba
   (-rgba [this] this)
 
-  
   IHsl
   (-hsl [this]
     (rgb->hsl (.-r this) (.-g this) (.-b this)))
@@ -575,6 +911,24 @@
   (-hsla [this]
     (let [hsl ^Hsl (-hsl this)]
       (Hsla. (.-h hsl) (.-s hsl) (.-l hsl) (.-a this))))
+
+  ILab
+  (-lab [this]
+    (rgb->lab (.-r this) (.-g this) (.-b this)))
+
+  ILaba
+  (-laba [this]
+    (let [lab ^Lab (-lab this)]
+      (Laba. (.-l lab) (.-astar lab) (.-bstar lab) (.-a this))))
+
+  IHcl
+  (-hcl [this]
+    (rgb->hcl (.-r this) (.-g this) (.-b this)))
+
+  IHcla
+  (-hcla [this]
+    (let [hcl ^Hcl (-hcl this)]
+      (Hcla. (.-h hcl) (.-c hcl) (.-l hcl) (.-a this))))
 
   IAlpha
   (-alpha [this]
@@ -602,7 +956,19 @@
 
   ILightness
   (-lightness [this]
-    (.-l ^Hsl (-hsl this)))) 
+    (.-l ^Hsl (-hsl this)))
+
+  IA
+  (-astar [this]
+    (.-astar ^Lab (-lab this)))
+
+  IB
+  (-bstar [this]
+    (.-bstar ^Lab (-lab this)))
+
+  IChroma
+  (-chroma [this]
+    (.-c ^Hcl (-hcl this))))
 
 (extend-type Hsl
   IHsl
@@ -621,8 +987,26 @@
     (let [rgb (hsl->rgb (.-h this) (.-s this) (.-l this))]
       (Rgba. (.-r rgb) (.-g rgb) (.-b rgb) 1.0)))
 
+  ILab
+  (-lab [this]
+    (hsl->lab (.-h this) (.-s this) (.-l this)))
+
+  ILaba
+  (-laba [this]
+    (let [lab ^Lab (-lab this)]
+      (Laba. (.-l lab) (.-astar lab) (.-bstar lab) 1.0)))
+
+  IHcl
+  (-hcl [this]
+    (hsl->hcl (.-h this) (.-s this) (.-l this)))
+
+  IHcla
+  (-hcla [this]
+    (let [hcl ^Hcl (-hcl this)]
+      (Hcla. (.-h hcl) (.-c hcl) (.-l hcl) 1.0)))
+
   IAlpha
-  (-alpha [this] 1.0)
+  (-alpha [_] 1.0)
 
   IRed
   (-red [this]
@@ -646,7 +1030,19 @@
 
   ILightness
   (-lightness [this]
-    (.-l this)))
+    (.-l this))
+
+  IA
+  (-astar [this]
+    (.-astar ^Lab (-lab this)))
+
+  IB
+  (-bstar [this]
+    (.-bstar ^Lab (-lab this)))
+
+  IChroma
+  (-chroma [this]
+    (.-c ^Hcl (-hcl this))))
 
 (extend-type Hsla
   IHsl
@@ -664,6 +1060,24 @@
   (-rgba [this]
     (let [rgb (hsl->rgb (.-h this) (.-s this) (.-l this))]
       (Rgba. (.-r rgb) (.-g rgb) (.-b rgb) (.-a this))))
+
+  ILab
+  (-lab [this]
+    (hsl->lab (.-h this) (.-s this) (.-l this)))
+
+  ILaba
+  (-laba [this]
+    (let [lab ^Lab (-lab this)]
+      (Laba. (.-l lab) (.-astar lab) (.-bstar lab) (.-a this))))
+
+  IHcl
+  (-hcl [this]
+    (hsl->hcl (.-h this) (.-s this) (.-l this)))
+
+  IHcla
+  (-hcla [this]
+    (let [hcl ^Hcl (-hcl this)]
+      (Hcla. (.-h hcl) (.-c hcl) (.-l hcl) (.-a this))))
 
   IAlpha
   (-alpha [this]
@@ -691,7 +1105,317 @@
 
   ILightness
   (-lightness [this]
-    (.-l this)))
+    (.-l this))
+
+  IA
+  (-astar [this]
+    (.-astar ^Lab (-lab this)))
+
+  IB
+  (-bstar [this]
+    (.-bstar ^Lab (-lab this)))
+
+  IChroma
+  (-chroma [this]
+    (.-c ^Hcl (-hcl this))))
+
+(extend-type Lab
+  ILab
+  (-lab [this] this)
+
+  ILaba
+  (-laba [this]
+    (Laba. (.-l this) (.-astar this) (.-bstar this) 1.0))
+
+  IHsl
+  (-hsl [this]
+    (lab->hsl (.-l this) (.-astar this) (.-bstar this)))
+
+  IHsla
+  (-hsla [this]
+    (let [hsl ^Hsl (-hsl this)]
+      (Hsla. (.-h hsl) (.-s hsl) (.-l hsl) 1.0)))
+
+  IRgb
+  (-rgb [this]
+    (lab->rgb (.-l this) (.-astar this) (.-bstar this)))
+
+  IRgba
+  (-rgba [this]
+    (let [rgb ^Rgb (-rgb this)]
+      (Rgba. (.-r rgb) (.-g rgb) (.-b rgb) 1.0)))
+
+  IHcl
+  (-hcl [this]
+    (lab->hcl (.-l this) (.-astar this) (.-bstar this)))
+
+  IHcla
+  (-hcla [this]
+    (let [hcl ^Hcl (-hcl this)]
+      (Hcla. (.-h hcl) (.-c hcl) (.-l hcl) 1.0)))
+
+  IAlpha
+  (-alpha [this] 1.0)
+
+  IRed
+  (-red [this]
+    (.-r (rgb this)))
+
+  IGreen
+  (-green [this]
+    (.-g (rgb this)))
+
+  IBlue
+  (-blue [this]
+    (.-b (rgb this)))
+
+  IHue
+  (-hue [this]
+    (.-h ^Hsl (-hsl this)))
+
+  ISaturation
+  (-saturation [this]
+    (.-s ^Hsl (-hsl this)))
+
+  ILightness
+  (-lightness [this]
+    (.-l this))
+
+  IA
+  (-astar [this]
+    (.-astar this))
+
+  IB
+  (-bstar [this]
+    (.-bstar this))
+
+  IChroma
+  (-chroma [this]
+    (.-c ^Hcl (-hcl this))))
+
+(extend-type Laba
+  ILab
+  (-lab [this]
+    (Lab. (.-l this) (.-astar this) (.-bstar this)))
+
+  ILaba
+  (-laba [this] this)
+
+  IHsl
+  (-hsl [this]
+    (lab->hsl (.-l this) (.-astar this) (.-bstar this)))
+
+  IHsla
+  (-hsla [this]
+    (let [hsl ^Hsl (-hsl this)]
+      (Hsla. (.-h hsl) (.-s hsl) (.-l hsl) (.-a this))))
+
+  IRgb
+  (-rgb [this]
+    (lab->rgb (.-l this) (.-astar this) (.-bstar this)))
+
+  IRgba
+  (-rgba [this]
+    (let [rgb ^Rgb (-rgb this)]
+      (Rgba. (.-r rgb) (.-g rgb) (.-b rgb) (.-a this))))
+
+  IHcl
+  (-hcl [this]
+    (lab->hcl (.-l this) (.-astar this) (.-bstar this)))
+
+  IHcla
+  (-hcla [this]
+    (let [hcl ^Hcl (-hcl this)]
+      (Hcla. (.-h hcl) (.-c hcl) (.-l hcl) (.-a this))))
+
+  IAlpha
+  (-alpha [this]
+    (.-a this))
+
+  IRed
+  (-red [this]
+    (.-r (rgb this)))
+
+  IGreen
+  (-green [this]
+    (.-g (rgb this)))
+
+  IBlue
+  (-blue [this]
+    (.-b (rgb this)))
+
+  IHue
+  (-hue [this]
+    (.-h ^Hsl (-hsl this)))
+
+  ISaturation
+  (-saturation [this]
+    (.-s ^Hsl (-hsl this)))
+
+  ILightness
+  (-lightness [this]
+    (.-l this))
+
+  IA
+  (-astar [this]
+    (.-astar this))
+
+  IB
+  (-bstar [this]
+    (.-bstar this))
+
+  IChroma
+  (-chroma [this]
+    (.-c ^Hcl (-hcl this))))
+
+(extend-type Hcl
+  IHcl
+  (-hcl [this] this)
+
+  IHcla
+  (-hcla [this]
+    (Hcla. (.-h hcl) (.-c hcl) (.-l hcl) 1.0))
+
+  ILab
+  (-lab [this]
+    (hcl->lab (.-h hcl) (.-c hcl) (.-l hcl)))
+
+  ILaba
+  (-laba [this]
+    (let [lab ^Lab (-lab this)]
+      (Laba. (.-l lab) (.-astar lab) (.-bstar lab) 1.0)))
+
+  IHsl
+  (-hsl [this]
+    (hcl->hsl (.-h this) (.-c this) (.-l this)))
+
+  IHsla
+  (-hsla [this]
+    (let [hsl ^Hsl (-hsl this)]
+      (Hsla. (.-h hsl) (.-s hsl) (.-l hsl) 1.0)))
+
+  IRgb
+  (-rgb [this]
+    (hcl->rgb (.-h this) (.-c this) (.-l this)))
+
+  IRgba
+  (-rgba [this]
+    (let [rgb ^Rgb (-rgb this)]
+      (Rgba. (.-r rgb) (.-g rgb) (.-b rgb) 1.0)))
+
+  IAlpha
+  (-alpha [this] 1.0)
+
+  IRed
+  (-red [this]
+    (.-r (rgb this)))
+
+  IGreen
+  (-green [this]
+    (.-g (rgb this)))
+
+  IBlue
+  (-blue [this]
+    (.-b (rgb this)))
+
+  IHue
+  (-hue [this]
+    (.-h this))
+
+  ISaturation
+  (-saturation [this]
+    (.-s ^Hsl (-hsl this)))
+
+  ILightness
+  (-lightness [this]
+    (.-l this))
+
+  IA
+  (-astar [this]
+    (.-astar ^Lab (-lab this)))
+
+  IB
+  (-bstar [this]
+    (.-bstar ^Lab (-lab this)))
+
+  IChroma
+  (-chroma [this]
+    (.-c this)))
+
+(extend-type Hcla
+  IHcl
+  (-hcl [this]
+    (Hcla. (.-h this) (.-c this) (.-l this) 1))
+
+  IHcla
+  (-hcla [this] this)
+
+  ILab
+  (-lab [this]
+    (hcl->lab (.-h hcl) (.-c hcl) (.-l hcl)))
+
+  ILaba
+  (-laba [this]
+    (let [lab ^Lab (-lab this)]
+      (Laba. (.-l lab) (.-astar lab) (.-bstar lab) (.-a this))))
+
+  IHsl
+  (-hsl [this]
+    (hcl->hsl (.-h this) (.-c this) (.-l this)))
+
+  IHsla
+  (-hsla [this]
+    (let [hsl ^Hsl (-hsl this)]
+      (Hsla. (.-h hsl) (.-s hsl) (.-l hsl) (.-a this))))
+
+  IRgb
+  (-rgb [this]
+    (hcl->rgb (.-h this) (.-c this) (.-l this)))
+
+  IRgba
+  (-rgba [this]
+    (let [rgb ^Rgb (-rgb this)]
+      (Rgba. (.-r rgb) (.-g rgb) (.-b rgb) (.-a this))))
+
+  IAlpha
+  (-alpha [this]
+    (.-a this))
+
+  IRed
+  (-red [this]
+    (.-r (rgb this)))
+
+  IGreen
+  (-green [this]
+    (.-g (rgb this)))
+
+  IBlue
+  (-blue [this]
+    (.-b (rgb this)))
+
+  IHue
+  (-hue [this]
+    (.-h this))
+
+  ISaturation
+  (-saturation [this]
+    (.-s ^Hsl (-hsl this)))
+
+  ILightness
+  (-lightness [this]
+    (.-l this))
+
+  IA
+  (-astar [this]
+    (.-astar ^Lab (-lab this)))
+
+  IB
+  (-bstar [this]
+    (.-bstar ^Lab (-lab this)))
+
+  IChroma
+  (-chroma [this]
+    (.-c this)))
 
 ;;; Numbers
 
@@ -708,11 +1432,31 @@
   (-hsl [l]
     (hsl (-rgb l)))
 
+  IHsla
+  (-hsla [l]
+    (hsla (-rgba l)))
+
+  ILab
+  (-lab [l]
+    (lab (-rgb l)))
+
+  ILaba
+  (-laba [l]
+    (laba (-rgba l)))
+
+  IHcl
+  (-hcl [l]
+    (hcl (-rgb l)))
+
+  IHcla
+  (-hcla [l]
+    (hcla (-rgba l)))
+
   IAlpha
   (-alpha [l]
     (if (< 0 (bit-and l 0xff000000))
       (clj// (bit-and (bit-shift-right l 24) 0xff)
-             255.0)
+        255.0)
       1.0))
 
   IRed
@@ -737,7 +1481,19 @@
 
   ILightness
   (-lightness [l]
-    (lightness (hsl l))))
+    (lightness (hsl l)))
+
+  IA
+  (-astar [l]
+    (astar (lab l)))
+
+  IB
+  (-bstar [l]
+    (bstar (lab l)))
+
+  IChroma
+  (-chroma [l]
+    (chroma (hcl l))))
 
 (extend-type Integer
   IRgb
@@ -755,6 +1511,22 @@
   IHsla
   (-hsla [i]
     (hsla (-rgba i)))
+
+  ILab
+  (-lab [i]
+    (lab (-rgb i)))
+
+  ILaba
+  (-laba [i]
+    (laba (-rgba i)))
+
+  IHcl
+  (-hcl [i]
+    (hcl (-rgb i)))
+
+  IHcla
+  (-hcla [i]
+    (hcla (-rgba i)))
 
   IAlpha
   (-alpha [i]
@@ -783,7 +1555,19 @@
 
   ILightness
   (-lightness [i]
-    (lightness (hsl i))))
+    (lightness (hsl i)))
+
+  IA
+  (-astar [l]
+    (astar (lab l)))
+
+  IB
+  (-bstar [l]
+    (bstar (lab l)))
+
+  IChroma
+  (-chroma [l]
+    (chroma (hcl l))))
 
 
 ;;; String
@@ -829,13 +1613,13 @@
   (if-let [[_ ^String h] (re-matches hex-re s)]
     (let [[r g b] (if (= (.length h) 3)
                     (mapv #(Integer/parseInt (str % %) 16)
-                          h)
+                      h)
                     (mapv #(Integer/parseInt % 16)
-                          (re-seq #"[\da-fA-F]{2}" h)))]
+                      (re-seq #"[\da-fA-F]{2}" h)))]
       (Rgb. r g b))
     (throw (ex-info (str "Invalid hex string: " (pr-str s))
-                    {:given s
-                     :expected `(~'re-matches ~hex-re ~s)}))))
+             {:given s
+              :expected `(~'re-matches ~hex-re ~s)}))))
 
 (defn ^Rgb rgb-str->rgb
   "Convert a CSS rgb value to an instance of Rgb."
@@ -844,8 +1628,8 @@
     (let [[r g b] (map #(Integer/parseInt ^String %) ns)]
       (Rgb. r g b))
     (throw (ex-info (str "Invalid rgb string: " (pr-str s))
-                    {:given s
-                     :expected `(~'re-matches ~rgb-re ~s)}))))
+             {:given s
+              :expected `(~'re-matches ~rgb-re ~s)}))))
 
 (defn ^Rgba rgba-str->rgba
   "Convert a CSS rgba value to an instance of Rgba."
@@ -855,8 +1639,8 @@
           a (Double. ^String a)]
       (Rgba. r g b a))
     (throw (ex-info (str "Invalid rgb string: " (pr-str s))
-                    {:given s
-                     :expected `(~'re-matches ~rgba-re ~s)}))))
+             {:given s
+              :expected `(~'re-matches ~rgba-re ~s)}))))
 
 (defn ^Hsl hsl-str->hsl
   "Convert a CSS hsl value to an instance of Hsl."
@@ -866,8 +1650,8 @@
           l (Double. ^String l)]
       (Hsl. h s l))
     (throw (ex-info (str "Invalid hsl string: " (pr-str s))
-                    {:given s
-                     :expected `(~'re-matches ~hsl-re ~s)}))))
+             {:given s
+              :expected `(~'re-matches ~hsl-re ~s)}))))
 
 (defn ^Hsla hsla-str->hsla
   "Convert a CSS hsla value to an instance of Hsla."
@@ -878,8 +1662,8 @@
           a (Double. ^String a)]
       (Hsla. h s l a))
     (throw (ex-info (str "Invalid hsla string: " (pr-str s))
-                    {:given s
-                     :expected `(~'re-matches ~hsla-re ~s)}))))
+             {:given s
+              :expected `(~'re-matches ~hsla-re ~s)}))))
 
 (def
   ^{:doc "Convert a CSS color name to hex."}
@@ -1035,34 +1819,34 @@
   "Attempt to parse a color from a string."
   [^String s]
   (cond
-   (re-matches hex-re s)
-   (hex-str->rgb s)
+    (re-matches hex-re s)
+    (hex-str->rgb s)
 
-   (re-matches rgb-re s)
-   (rgb-str->rgb s)
+    (re-matches rgb-re s)
+    (rgb-str->rgb s)
 
-   (re-matches rgba-re s)
-   (rgba-str->rgba s)
+    (re-matches rgba-re s)
+    (rgba-str->rgba s)
 
-   (re-matches hsl-re s)
-   (hsl-str->hsl s)
+    (re-matches hsl-re s)
+    (hsl-str->hsl s)
 
-   (re-matches hsla-re s)
-   (hsla-str->hsla s)
+    (re-matches hsla-re s)
+    (hsla-str->hsla s)
 
-   :else
-   (if-let [h (-> (string/lower-case s)
-                  (string/replace #"[^a-z]" "")
-                  (color-name->hex))]
-     (rgb h)
-     (throw (ex-info (str "Unable to convert " (pr-str s) " to a color")
-                     {:given s
-                      :expected `(~'or (~'re-matches ~hex-re ~s)
-                                       (~'re-matches ~rgb-re ~s)
-                                       (~'re-matches ~rgba-re ~s)
-                                       (~'re-matches ~hsl-re ~s)
-                                       (~'re-matches ~hsla-re ~s)
-                                       (~'color-name->hex ~s))})))))
+    :else
+    (if-let [h (-> (string/lower-case s)
+                 (string/replace #"[^a-z]" "")
+                 (color-name->hex))]
+      (rgb h)
+      (throw (ex-info (str "Unable to convert " (pr-str s) " to a color")
+               {:given s
+                :expected `(~'or (~'re-matches ~hex-re ~s)
+                            (~'re-matches ~rgb-re ~s)
+                            (~'re-matches ~rgba-re ~s)
+                            (~'re-matches ~hsl-re ~s)
+                            (~'re-matches ~hsla-re ~s)
+                            (~'color-name->hex ~s))})))))
 
 (extend-type String
   IRgb
