@@ -10,7 +10,11 @@
      (:import garden.color.Hsl
               garden.color.Hsla
               garden.color.Rgb
-              garden.color.Rgba)))
+              garden.color.Rgba
+              garden.color.Lab
+              garden.color.Laba
+              garden.color.Hcl
+              garden.color.Hcla)))
 
 ;; ---------------------------------------------------------------------
 ;; Helpers
@@ -30,6 +34,10 @@
 (defn hsla-str [[h s l a]]
   {:pre [(nat-int? h) (nat-int? s) (nat-int? l) (pos? a)]}
   (str "hsla(" (string/join "," [h (str s "%") (str l "%") a]) ")"))
+
+(def sqrt
+  #?(:clj #(Math/sqrt %)
+     :cljs #(js/Math.sqrt %)))
 
 ;; ---------------------------------------------------------------------
 ;; Generators
@@ -53,6 +61,15 @@
                  :NaN? false
                  :min 0
                  :max 1})))
+
+;; the a and b in Lab.
+(def gen-color-opponent
+  (gen/choose -128 128))
+
+;; Chroma is the cylindrical representation of the color opponent axes
+;; sqrt(a^2 + b^2)
+(def gen-chroma
+  (gen/choose 0 (sqrt (* 2 128 128))))
 
 (def gen-hex-char
   (gen/fmap char
@@ -95,8 +112,11 @@
 
 (defspec hue-spec
   (prop/for-all [h gen-hue]
-    (let [hsl (c/Hsl. h 0 0)]
-      (= h (c/hue hsl)))))
+    (let [hsl (c/Hsl. h 0 0)
+          hcl (c/hcl hsl)]
+      (= h
+        (c/hue hsl)
+        (c/hue hcl)))))
 
 (defspec saturation-spec
   (prop/for-all [s gen-saturation]
@@ -107,17 +127,37 @@
 (defspec lightness-spec
   (prop/for-all [l gen-lightness]
     (let [hsl (c/Hsl. 0 0 l)
-          rgb (c/rgb hsl)]
+          ;; rgb (c/rgb hsl)
+          lab (c/lab hsl)
+          hcl (c/hcl hsl)]
       (= l
-         (c/lightness hsl)))))
+        (c/lightness hsl)
+        (c/lightness lab)
+        (c/lightness hcl)))))
 
 (defspec alpha-spec
   (prop/for-all [ch gen-alpha-channel]
     (let [rgba (c/Rgba. 0 0 0 ch)
-          hsla (c/Hsla. 0 0 0 ch)]
+          hsla (c/Hsla. 0 0 0 ch)
+          laba (c/laba rgba)
+          hcla (c/hcla rgba)]
       (= ch
          (c/alpha rgba)
-         (c/alpha hsla)))))
+         (c/alpha hsla)
+         (c/alpha laba)
+         (c/alpha hcla)))))
+
+(defspec astar-spec
+  (prop/for-all [o gen-color-opponent]
+    (let [lab (c/Lab. 0 o 0)]
+      (= o
+        (c/astar lab)))))
+
+(defspec bstar-spec
+  (prop/for-all [o gen-color-opponent]
+    (let [lab (c/Lab. 0 0 o)]
+      (= o
+        (c/bstar lab)))))
 
 (defspec rgb-spec
   (prop/for-all [r-ch gen-rgb-channel
@@ -141,6 +181,17 @@
            (= b-ch (c/blue rgba))
            (= a-ch (c/alpha rgba))))))
 
+(defspec lab-spec
+  (prop/for-all [l gen-lightness
+                 a gen-color-opponent
+                 b gen-color-opponent]
+    (let [lab (c/Lab. l a b)]
+      (and
+        (= lab (c/lab lab))
+        (= l (c/lightness lab))
+        (= a (c/astar lab))
+        (= b (c/bstar lab))))))
+
 ;; ---------------------------------------------------------------------
 ;; Conversion tests
 
@@ -154,8 +205,8 @@
        (c/long (c/hsla i))
        (c/long (c/lab i))
        (c/long (c/laba i))
-       #_(c/long (c/hcl i))
-       #_(c/long (c/hcla i)))))
+       (c/long (c/hcl i))
+       (c/long (c/hcla i)))))
 
 (defspec hsl-to-rgb-is-equal-to-rgb-to-hsl 10000
   (prop/for-all [i gen/pos-int]
@@ -163,8 +214,8 @@
       (-> i c/rgb c/hsl c/long)
       (-> i c/lab c/rgb c/long)
       (-> i c/rgb c/lab c/long)
-      #_(-> i c/hcl c/rgb c/long)
-      #_(-> i c/rgb c/hcl c/long))))
+      (-> i c/hcl c/rgb c/long)
+      (-> i c/rgb c/hcl c/long))))
 
 (defspec invert-of-invert-is-equal-to-the-original-value 10000
   (prop/for-all [i gen/pos-int]
