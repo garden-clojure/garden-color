@@ -256,7 +256,7 @@
 
 (defn ^Number hue
   [x]
-  {:post [(number? %)]}
+  {:post [(number? %) (<= 0 % 360)]}
   (-hue x))
 
 (defn ^Number saturation
@@ -266,7 +266,7 @@
 
 (defn ^Number lightness
   [x]
-  {:post [(number? %) (<= 0 % 100)]}
+  {:post [(number? %) #_(<= 0 % 100)]}
   (-lightness x))
 
 (defn ^Number astar
@@ -283,7 +283,7 @@
 
 (defn ^Number chroma
   [x]
-  {:post [(number? %)]}
+  {:post [(number? %) (<= 0 % (Math/sqrt (clj/* 2 128 128)))]}
   (-chroma x))
 
 (defn ^Number alpha
@@ -532,7 +532,7 @@
         / clj//
         [x y z] (rgb->xyz r g b)]
     (Lab.
-      (- (* 116 y) 16)
+      (min 100 (max 0 (- (* 116 y) 16)))
       (* 500 (- x y))
       (* 200 (- y z)))))
 
@@ -580,11 +580,12 @@
         + clj/+
         / clj//
         chroma (Math/pow (+ (* a a) (* b b)) 0.5)
-        hue (when (not (zero? (Math/round (* chroma 10000))))
+        hue (if (not (zero? (Math/round (* chroma 10000))))
               (rem (+ 360
                      (* (Math/atan2 b a)
                        (/ 180 Math/PI)))
-                360))]
+                360)
+              0)]
     (Hcl. hue chroma l)))
 
 (defn ^Lab hcl->lab
@@ -621,19 +622,19 @@
   "Return an instance of Lab from hue, saturation, and lightness values."
   [h s l]
   (let [{:keys [r g b]} (hsl->rgb h s l)]
-    (rgb->lab r g b)))
+    (assoc (rgb->lab r g b) :l l)))
 
 (defn ^Hsl hcl->hsl
   "Return an instance of Hsl from hue, chroma, and lightness values."
   [h c l]
   (let [{:keys [r g b]} (hcl->rgb h c l)]
-    (rgb->hsl r g b)))
+    (assoc (rgb->hsl r g b) :h h :l l)))
 
 (defn ^Hcl hsl->hcl
   "Return an instance of Hcl from hue, saturation, and lightness values."
   [h s l]
   (let [{:keys [r g b]} (hsl->rgb h s l)]
-    (rgb->hcl r g b)))
+    (assoc (rgb->hcl r g b) :h h :l l)))
 
 
 ;; ---------------------------------------------------------------------
@@ -854,6 +855,10 @@
   (-hcla [this]
     (let [hcl ^Hcl (-hcl this)]
       (Hcla. (.-h hcl) (.-c hcl) (.-l hcl) 1.0)))
+
+  IRed
+  (-red [this]
+    (.-r this))
 
   IGreen
   (-green [this]
